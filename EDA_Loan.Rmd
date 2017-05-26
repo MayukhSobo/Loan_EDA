@@ -19,3 +19,22 @@ suppressMessages(library(RColorBrewer))
 loanData <- read.csv('prosperLoanData.csv')
 ```
 
+## The first Qustion
+The first question that needs to be asked is HOW LONG PEOPLE USUALLY OPT FOR LOAN? Let's answer this question with a histogram
+```{r}
+loanData %>% 
+    ggplot(aes(x = Term / 12)) +
+        geom_histogram(binwidth = 1) +
+        theme_pander() + 
+        xlab('Term in Years') +
+        ylab('How many?') + 
+        scale_x_continuous(breaks = seq(1, 5, 1))
+```
+We can see that people don't really loan any amount for less than one year and the most popular loan amount is of 3 years although some people do choose for 5 years. Now lets assume something and check if it is correct or not. I assume that people who opted for 1 year would fail to repay their loan more as compared to the people who opeted for 3 or 5 years. But is it true? So the next question is
+DOES PEOPLE REPAY THE LOANS BETTER WHEN THEY ARE GIVEN MORE TIME?
+
+
+
+
+
+
