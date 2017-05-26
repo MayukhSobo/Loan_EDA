@@ -1,0 +1,21 @@
+---
+title: "Prosper Loan Data Analysis"
+output: html_notebook
+---
+
+## Loading the packages
+```{r}
+library(ggplot2)
+library(ggthemes)
+library(dplyr)
+library(reshape2)
+library(memisc)
+library(gridExtra)
+library(RColorBrewer)
+```
+
+## Loading the dataset
+```{r}
+loanData <- read.csv('prosperLoanData.csv')
+```
+
