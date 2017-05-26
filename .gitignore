@@ -2,3 +2,4 @@
 .RData
 .Rhistory
 *.csv
+.Rproj.user
