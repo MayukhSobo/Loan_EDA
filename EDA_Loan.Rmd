@@ -5,13 +5,13 @@ output: html_notebook
 
 ## Loading the packages
 ```{r}
-library(ggplot2)
-library(ggthemes)
-library(dplyr)
-library(reshape2)
-library(memisc)
-library(gridExtra)
-library(RColorBrewer)
+suppressMessages(library(ggplot2))
+suppressMessages(library(ggthemes))
+suppressMessages(library(dplyr))
+suppressMessages(library(reshape2))
+suppressMessages(library(memisc))
+suppressMessages(library(gridExtra))
+suppressMessages(library(RColorBrewer))
 ```
 
 ## Loading the dataset
