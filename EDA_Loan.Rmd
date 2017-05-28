@@ -36,7 +36,7 @@ loanData %>%
         scale_x_continuous(breaks = seq(1, 5, 2))
 ```
 
-We can see that people don't really loan any amount for less than one year and the most popular loan amount is of 3 years although some people do choose for 5 years. Now lets assume something and check if it is correct or not. I assume that people who opted for 1 year would fail to repay their loan more as compared to the people who opeted for 3 or 5 years. But is it true? So the next question is
+We can see that people don't really loan any amount for less than one year and the most popular loan amount is of 3 years although some people do choose for 5 years. Now lets assume something and check if it is correct or not. I assume that people who opted for 1 year would fail to repay their loan more as compared to the people who opted for 3 or 5 years. But is it true? So the next question is
 DOES PEOPLE REPAY THE LOANS BETTER WHEN THEY ARE GIVEN MORE TIME?
 ```{r}
 totalLoanTermes <- loanData %>%
@@ -94,7 +94,7 @@ ggplot(aes(x = Term / 12, y = n, fill = customer_type), data = loanData.gb) +
     facet_wrap(~customer_type) +
     scale_fill_hc()
 ```
-As we can that the short and long term prospects of the banks who issues the loan seeems gppd because both in 1 and 5 year category, we see more number of good customers as compared to the 3 years. The number of good customers is however decreased a little from 1 year to 5 years but as compared to 3 years it is nothing. This may mean that banks should focus in long and short term customers as compared to medium term customers. But we should take this fact with a grain of slat because there might be other factors that may affect this trend. Only further exploration of the data would reveal that.
+As we can that the short and long term prospects of the banks who issues the loan seems good because both in 1 and 5 year category, we see more number of good customers as compared to the 3 years. The number of good customers is however decreased a little from 1 year to 5 years but as compared to 3 years it is nothing. This may mean that banks should focus in long and short term customers as compared to medium term customers. But we should take this fact with a grain of slat because there might be other factors that may affect this trend. Only further exploration of the data would reveal that.
 
 ## EstimatedEffectiveYield - A better measure for a successful Lender
 ```{r}
@@ -111,7 +111,9 @@ ggplot(aes(x = EstimatedEffectiveYield), data = loanData) +
 
 **EstimatedEffectiveYield** is said to be better estimate for the lenders than the interest rate because the interest includes _processing fees_, _uncollected interest due to borrower being chargedoff_. Plus it also doesn;t include _late fines_. Hence EstimatedEffectiveYield takes account for all these things and it is thus a better measure. Above we are trying to see the ditribution of the EstimatedEffectiveYield and we can see that it is multimodal. We see the most popular EstimatedEffectiveYield is around 0.3 while the mean is around 0.17 represented by the blue dotted line. The multimodal pattern shows that there are multiple EstimatedEffectiveYield that is popular. Strangely we can also see that the some customers have negative EstimatedEffectiveYield. This may mean a lot of things. This may mean that their BorrowerRate is a lot lower than their _service fee rate_ or these customer's _uncollected interest on chargeoff_ is lot more or they just never payed the late fee and payed back the loans along with the interest always on time.
 
-Now lets see what is the distrubution of EstimatedEffectiveYield depending on the different **ProsperScore**. This is important because we want to answer a question, i.e., IF LENDERS GET MORE EstimatedEffectiveYield IF THEY HAVE BETTER ProsperScore ?
+## Does Lenders prefer borrowers with better Prosper Score ? 
+
+Now lets see what is the distribution of EstimatedEffectiveYield depending on the different **ProsperScore**. This is important because we want to answer a question, i.e., IF LENDERS GET MORE EstimatedEffectiveYield IF THEY HAVE BETTER ProsperScore ?
 
 We are using violin plot instead of box plot for this.
 
@@ -126,3 +128,4 @@ ggplot(aes(x = ProsperScore, y = EstimatedEffectiveYield, fill=ProsperScore),
     xlab('\nScore for Risk Factor') +
     ylab('Effective yeild of Lenders')
 ```
+
