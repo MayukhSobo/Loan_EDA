@@ -52,7 +52,8 @@ loanData.two_status$percent = (loanData.two_status$n / totalLoanTermes) * 100
 ```
 Now let's plot the data
 ```{r}
-ggplot(aes(x = Term / 12, y = percent, fill = LoanStatus), data = loanData.two_status) +
+ggplot(aes(x = Term / 12, y = percent, fill = LoanStatus), 
+       data = loanData.two_status) +
     geom_bar(stat = 'identity', position="dodge", color = 'black') + 
     scale_x_continuous(breaks = c(1, 3, 5)) +
     xlab('Loan term in years') + 
@@ -120,7 +121,8 @@ We are using violin plot instead of box plot for this.
 ```{r}
 loanData$ProsperScore <- factor(loanData$ProsperScore)
 ggplot(aes(x = ProsperScore, y = EstimatedEffectiveYield, fill=ProsperScore), 
-       data = subset(loanData, !is.na(loanData$ProsperScore) & !is.na(loanData$EstimatedEffectiveYield))) +
+       data = subset(loanData, !is.na(loanData$ProsperScore) & 
+                         !is.na(loanData$EstimatedEffectiveYield))) +
     geom_violin(trim = F, scale = "width") +
     stat_summary(fun.y=median, geom="point", size=2, color="black") +
     scale_fill_manual(values=colorRampPalette(c("pink", "lightgreen"))(11)) + 
@@ -131,9 +133,10 @@ ggplot(aes(x = ProsperScore, y = EstimatedEffectiveYield, fill=ProsperScore),
 
 Well this is interesting. We see an wonderful trend here. Here more socre for the risk factor means better the borrower and lesser score for risk factor means poor prospects from the borrowers. We can see that for lower ProsperScore distribution of effective yield in a lot more than the higher ProsperScore. This may mean that lenders charges a variety of interest rate from the borrower with poor prospects as compared to borrowers with better prospect. We can also notice how median (repesented by the balck dot) is decreasing as ProsperScore is increasing. This may mean that lenders give more relaxations to borrowers with better ratings as compared to borrowers with poor rating. Does that mean lenders trust and like borrowes with better ProsperScore! Let's do a little more analysis to reveal it more. The reason we need more exploration on this is because EstimatedEffectiveYield includes more things such as late fine and doesn't inlcude processing fee and others. So more EstimatedEffectiveYield for lesser ProsperScore borrowers may be due to high late fines because lesser ProsperScore borrowers are more prone to fail to repay their loan on time each month. So, Let's see if borrower's interest rate shows the same trend for each ProsperScore categories or not because interest rates doesn't include late fines. 
 
-```{r, fig.height=5, fig.width=12}
+```{r, fig.height=5, fig.width=14}
 borrower_apr <- ggplot(aes(x = ProsperScore, y = BorrowerAPR, color=ProsperScore), 
-       data = subset(loanData, !is.na(loanData$ProsperScore) & !is.na(loanData$BorrowerAPR))) +
+       data = subset(loanData, !is.na(loanData$ProsperScore) & 
+                         !is.na(loanData$BorrowerAPR))) +
     geom_jitter(shape=2, position=position_jitter(0.2)) +
     stat_summary(fun.y=median, geom="point", size=2, color="black") +
     scale_color_manual(values=colorRampPalette(c("lightblue", "dodgerblue4"))(11)) + 
@@ -142,10 +145,11 @@ borrower_apr <- ggplot(aes(x = ProsperScore, y = BorrowerAPR, color=ProsperScore
     ylab('Annual Percentage Rate')
 
 borrower_rate <- ggplot(aes(x = ProsperScore, y = BorrowerRate, color=ProsperScore), 
-       data = subset(loanData, !is.na(loanData$ProsperScore) & !is.na(loanData$BorrowerRate))) +
+       data = subset(loanData, !is.na(loanData$ProsperScore) & 
+                         !is.na(loanData$BorrowerRate))) +
     geom_jitter(shape=2, position=position_jitter(0.2)) +
     stat_summary(fun.y=median, geom="point", size=2, color="black") +
-    scale_color_manual(values=colorRampPalette(c("chocolate", "chocolate4"))(11)) + 
+    scale_color_manual(values=colorRampPalette(c("orange", "chocolate3"))(11)) + 
     theme_pander() +
     xlab('\nScore for Risk Factor') +
     ylab('Annual Percentage Rate')
@@ -153,4 +157,35 @@ borrower_rate <- ggplot(aes(x = ProsperScore, y = BorrowerRate, color=ProsperSco
 grid.arrange(borrower_apr, borrower_rate, nrow = 1, ncol = 2)
 ```
 
+Finally thigs are revealed much better now! We can clearly observe that for both _BorrowerAPR_ and _BorrowerRate_ which are metric for interest rates, we see a declining trend as the _ProsperScore_ is incresing. This justifies the fact even more that lenders somehow prefers to charge less for all the borrowers with better ProsperScore as compared to borrowers with inferior ProsperScore. Here food for thhought is that is it moral too? Well I guess no amount of EDA can reveal it.
+
+But are we missing the real question here? We are performing all these analysis on the Prosper loan data to answer several questions but what is the most important thing for a loan ? It's **BORROWERS** and what is the most important question related to borrowers? 
+
+## What people want loans for?
+```{r, fig.height=6, fig.width=11}
+categories <- c("Debt\nConsolidation", "Home\nImprovement", "Business",
+               "Personal\nLoan", "Student Use", "Auto",
+               "Other", "Baby", "Boat",
+               "Cosmetic\nProcedure", "Engagement\nRing", "Green\nLoans",
+               "Household\nExpenses", "Large\nPurchases", "Medical",
+               "Motorcycle", "RV", "Taxes", "Vaccation", "Wedding\nLoans")
+mapBorrowerCategory <- function(categoryNumber) {
+    ifelse(categoryNumber == 0, 'na', categories[categoryNumber])
+}
+
+loanData.reasons <- loanData %>%
+    group_by(ListingCategory..numeric.) %>%
+    summarise(n = n()) %>%
+    filter(ListingCategory..numeric. != 0) %>%
+    mutate(category = mapBorrowerCategory(ListingCategory..numeric.)) %>%
+    arrange(n) %>%
+    dplyr::select(-ListingCategory..numeric.)
+
+loanData.reasons$category <- factor(loanData.reasons$category)
+ggplot(aes(x = reorder(category, -n), y = log10(n), fill = n), data = loanData.reasons) +
+    geom_bar(stat = 'identity', position="dodge") +
+    theme_minimal() + 
+    # scale_fill_manual(values=colorRampPalette(c("gold", "gold4"))(5))
+    scale_fill_gradient(low = 'lightblue', high = 'darkblue')
+```
 
