@@ -110,7 +110,7 @@ ggplot(aes(x = EstimatedEffectiveYield), data = loanData) +
                color="blue", linetype="dashed", size=1)
 ```
 
-**EstimatedEffectiveYield** is said to be better estimate for the lenders than the interest rate because the interest includes _processing fees_, _uncollected interest due to borrower being chargedoff_. Plus it also doesn;t include _late fines_. Hence EstimatedEffectiveYield takes account for all these things and it is thus a better measure. Above we are trying to see the ditribution of the EstimatedEffectiveYield and we can see that it is multimodal. We see the most popular EstimatedEffectiveYield is around 0.3 while the mean is around 0.17 represented by the blue dotted line. The multimodal pattern shows that there are multiple EstimatedEffectiveYield that is popular. Strangely we can also see that the some customers have negative EstimatedEffectiveYield. This may mean a lot of things. This may mean that their BorrowerRate is a lot lower than their _service fee rate_ or these customer's _uncollected interest on chargeoff_ is lot more or they just never payed the late fee and payed back the loans along with the interest always on time.
+**EstimatedEffectiveYield** is said to be better estimate for the lenders than the interest rate because the interest includes _processing fees_, _uncollected interest due to borrower being chargedoff_. Plus it also doesn't include _late fines_. Hence EstimatedEffectiveYield takes account for all these things and it is thus a better measure. Above we are trying to see the distribution of the EstimatedEffectiveYield and we can see that it is multimodal. We see the most popular EstimatedEffectiveYield is around 0.3 while the mean is around 0.17 represented by the blue dotted line. The multimodal pattern shows that there are multiple EstimatedEffectiveYield that is popular. Strangely we can also see that the some customers have negative EstimatedEffectiveYield. This may mean a lot of things. This may mean that their BorrowerRate is a lot lower than their _service fee rate_ or these customer's _uncollected interest on chargeoff_ is lot more or they just never payed the late fee and payed back the loans along with the interest always on time.
 
 ## Does Lenders prefer borrowers with better Prosper Score ? 
 
@@ -131,7 +131,7 @@ ggplot(aes(x = ProsperScore, y = EstimatedEffectiveYield, fill=ProsperScore),
     ylab('Effective yeild of Lenders')
 ```
 
-Well this is interesting. We see an wonderful trend here. Here more socre for the risk factor means better the borrower and lesser score for risk factor means poor prospects from the borrowers. We can see that for lower ProsperScore distribution of effective yield in a lot more than the higher ProsperScore. This may mean that lenders charges a variety of interest rate from the borrower with poor prospects as compared to borrowers with better prospect. We can also notice how median (repesented by the balck dot) is decreasing as ProsperScore is increasing. This may mean that lenders give more relaxations to borrowers with better ratings as compared to borrowers with poor rating. Does that mean lenders trust and like borrowes with better ProsperScore! Let's do a little more analysis to reveal it more. The reason we need more exploration on this is because EstimatedEffectiveYield includes more things such as late fine and doesn't inlcude processing fee and others. So more EstimatedEffectiveYield for lesser ProsperScore borrowers may be due to high late fines because lesser ProsperScore borrowers are more prone to fail to repay their loan on time each month. So, Let's see if borrower's interest rate shows the same trend for each ProsperScore categories or not because interest rates doesn't include late fines. 
+Well this is interesting. We see an wonderful trend here. Here more score for the risk factor means better the borrower and lesser score for risk factor means poor prospects from the borrowers. We can see that for lower ProsperScore distribution of effective yield in a lot more than the higher ProsperScore. This may mean that lenders charges a variety of interest rate from the borrower with poor prospects as compared to borrowers with better prospect. We can also notice how median (represented by the black dot) is decreasing as ProsperScore is increasing. This may mean that lenders give more relaxations to borrowers with better ratings as compared to borrowers with poor rating. Does that mean lenders trust and like borrowers with better ProsperScore! Let's do a little more analysis to reveal it more. The reason we need more exploration on this is because EstimatedEffectiveYield includes more things such as late fine and doesn't include processing fee and others. So more EstimatedEffectiveYield for lesser ProsperScore borrowers may be due to high late fines because lesser ProsperScore borrowers are more prone to fail to repay their loan on time each month. So, Let's see if borrower's interest rate shows the same trend for each ProsperScore categories or not because interest rates doesn't include late fines. 
 
 ```{r, fig.height=5, fig.width=14}
 borrower_apr <- ggplot(aes(x = ProsperScore, y = BorrowerAPR, color=ProsperScore), 
@@ -157,12 +157,12 @@ borrower_rate <- ggplot(aes(x = ProsperScore, y = BorrowerRate, color=ProsperSco
 grid.arrange(borrower_apr, borrower_rate, nrow = 1, ncol = 2)
 ```
 
-Finally thigs are revealed much better now! We can clearly observe that for both _BorrowerAPR_ and _BorrowerRate_ which are metric for interest rates, we see a declining trend as the _ProsperScore_ is incresing. This justifies the fact even more that lenders somehow prefers to charge less for all the borrowers with better ProsperScore as compared to borrowers with inferior ProsperScore. Here food for thhought is that is it moral too? Well I guess no amount of EDA can reveal it.
+Finally things are revealed much better now! We can clearly observe that for both _BorrowerAPR_ and _BorrowerRate_ which are metric for interest rates, we see a declining trend as the _ProsperScore_ is increasing. This justifies the fact even more that lenders somehow prefers to charge less for all the borrowers with better ProsperScore as compared to borrowers with inferior ProsperScore. Here food for thought is that is it moral too? Well I guess no amount of EDA can reveal it.
 
 But are we missing the real question here? We are performing all these analysis on the Prosper loan data to answer several questions but what is the most important thing for a loan ? It's **BORROWERS** and what is the most important question related to borrowers? 
 
 ## What people want loans for?
-```{r, fig.height=6, fig.width=11}
+```{r, fig.height=7, fig.width=10}
 categories <- c("Debt\nConsolidation", "Home\nImprovement", "Business",
                "Personal\nLoan", "Student Use", "Auto",
                "Other", "Baby", "Boat",
@@ -177,15 +177,36 @@ loanData.reasons <- loanData %>%
     group_by(ListingCategory..numeric.) %>%
     summarise(n = n()) %>%
     filter(ListingCategory..numeric. != 0) %>%
-    mutate(category = mapBorrowerCategory(ListingCategory..numeric.)) %>%
+    mutate(category = mapBorrowerCategory(ListingCategory..numeric.), 
+           freq = n / sum(n) * 100) %>%
     arrange(n) %>%
     dplyr::select(-ListingCategory..numeric.)
 
 loanData.reasons$category <- factor(loanData.reasons$category)
-ggplot(aes(x = reorder(category, -n), y = log10(n), fill = n), data = loanData.reasons) +
+ggplot(aes(x = reorder(category, freq), y = freq, fill = freq), data = loanData.reasons) +
     geom_bar(stat = 'identity', position="dodge") +
-    theme_minimal() + 
-    # scale_fill_manual(values=colorRampPalette(c("gold", "gold4"))(5))
-    scale_fill_gradient(low = 'lightblue', high = 'darkblue')
+    theme_pander() +
+    scale_fill_gradient(low = 'lightblue', high = 'darkblue') +
+    coord_flip() +
+    guides(fill=FALSE) +
+    geom_text(aes(label = sprintf("%2.1f%%", round(freq, 2))), 
+              color="black", size = 5, nudge_y = 3) +
+    ylab('Percentage') +
+    xlab('Loan Categories') +
+    theme(axis.text.y = element_text(face = 'bold.italic', colour = 'darkblue'))
+    
 ```
 
+## Loan for Loans !!
+
+It is really strange that people took loans to reimburse loans/debts and lenders also issued loans to these people. Isn't is a bad idea to take laons to pay for loans? Aren't we falling into a vicious cycle? We can also see that Home Inprovement is above Medical which may mean well insured population or negligence toward health. The other section with more than 10% of the loans would remain unknown. Why the loan reason would be unknown? Does it indicate any illegal reason to opt for loan! Let's explore this more. Let's see the Occupation and Employment status of Borrowers for all the loans falling into the _others_ section.
+
+## Who are others??
+```{r}
+loanData %>% 
+    filter(ListingCategory..numeric. == 7) %>%
+    group_by(Occupation, EmploymentStatus) %>%
+    summarise(n = n()) %>%
+    ungroup() %>%
+    head(10)
+```
