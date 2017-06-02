@@ -5,6 +5,8 @@ output:
   pdf_document: default
   html_notebook: default
   html_document: default
+header-includes:
+- \usepackage{booktabs}
 ---
 
 ## Loading the packages
@@ -17,6 +19,9 @@ suppressMessages(library(memisc))
 suppressMessages(library(gridExtra))
 suppressMessages(library(RColorBrewer))
 suppressMessages(library(magrittr))
+suppressMessages(library(Kmisc))
+suppressMessages(library(xtable))
+suppressMessages(library(knitr))
 ```
 
 ## Loading the dataset
@@ -38,6 +43,7 @@ loanData %>%
 
 We can see that people don't really loan any amount for less than one year and the most popular loan amount is of 3 years although some people do choose for 5 years. Now lets assume something and check if it is correct or not. I assume that people who opted for 1 year would fail to repay their loan more as compared to the people who opted for 3 or 5 years. But is it true? So the next question is
 DOES PEOPLE REPAY THE LOANS BETTER WHEN THEY ARE GIVEN MORE TIME?
+
 ```{r}
 totalLoanTermes <- loanData %>%
     group_by(Term) %>%
@@ -203,10 +209,93 @@ It is really strange that people took loans to reimburse loans/debts and lenders
 
 ## Who are others??
 ```{r}
-loanData %>% 
+other.borrowers <- loanData %>%
     filter(ListingCategory..numeric. == 7) %>%
-    group_by(Occupation, EmploymentStatus) %>%
+    group_by(EmploymentStatus, Occupation) %>%
     summarise(n = n()) %>%
+    filter(!is.na(Occupation)) %>%
     ungroup() %>%
-    head(10)
+    arrange(EmploymentStatus, desc(n)) %>%
+    ungroup() %>%
+    group_by(EmploymentStatus) %>%
+    top_n(n = 5, wt = n) %>%
+    ungroup()
 ```
+```{r echo=FALSE}
+######### This is for knitr in HTML ############
+# datatable(a, 
+#           colnames = c('Employment Status' = 'EmploymentStatus', 'Occupation' = 'Occupation', 'Total' = 'n'), 
+#           class = 'stripe', 
+#           rownames = FALSE,
+#           filter = 'top', 
+#           options = list(
+#               pageLength = 5, 
+#               autoWidth = TRUE, 
+#               columnDefs = list(list(targets = c(1, 2), searchable = FALSE))
+#               ))
+```
+```{r results='asis', echo=FALSE}
+
+######## This is for for knitr in PDF  #########
+employed <- other.borrowers %>%
+    filter(EmploymentStatus == 'Employed') %>%
+    dplyr::select(-EmploymentStatus)
+full.time <- other.borrowers %>%
+    filter(EmploymentStatus == 'Full-time') %>%
+    dplyr::select(-EmploymentStatus)
+part.time <- other.borrowers %>%
+    filter(EmploymentStatus == 'Part-time') %>%
+    dplyr::select(-EmploymentStatus)
+self.employed <- other.borrowers %>%
+    filter(EmploymentStatus == 'Self-employed') %>%
+    dplyr::select(-EmploymentStatus)
+others <- other.borrowers %>%
+    filter(EmploymentStatus == 'Retired' | EmploymentStatus == 'Other')
+
+t1 <- kable(employed, format = "latex", booktabs = TRUE)
+t2 <- kable(full.time, format = "latex", booktabs = TRUE)
+t3 <- kable(part.time, format = "latex", booktabs = TRUE)
+t4 <- kable(self.employed, format = "latex", booktabs = TRUE)
+t5 <- kable(others, format = "latex", booktabs = TRUE)
+cat(c("\\begin{table}[!htb]
+    \\begin{minipage}{.5\\linewidth}
+      \\caption{ Employed }
+      \\centering",
+        t1,
+    "\\end{minipage}%
+    \\begin{minipage}{.5\\linewidth}
+      \\centering
+        \\caption{ Full-time }",
+        t2,
+    "\\end{minipage}
+    \\begin{minipage}{.5\\linewidth}
+      \\centering
+        \\caption{ Part-time }",
+        t3,
+    "\\end{minipage}%
+    \\begin{minipage}{.5\\linewidth}
+      \\centering
+        \\caption{ Self-employed }",
+        t4,
+    "\\end{minipage}
+    \\centering
+    \\begin{minipage}{.5\\linewidth}
+      \\centering
+        \\caption{ Others }",
+        t5,
+    "\\end{minipage}
+\\end{table}"
+))
+```
+
+We can see some really strange things happening here. In fact there are so many strange things that I have to list them down
+    
+**Firstly** what is the difference between _Employed_ and _Full-time_?
+    
+**Secondly** there are too many others. The complete sample of the data is taken for those borrowers whose purpose for borrowing is _Others_. But there are _Others_ for _Occupation_ and _EmploymentStatus_ too. 
+
+**Thirdly** how can someone be _Retired_ but still has _Occupation Others_ ?
+
+**Lastly** there are some dubious borrowes in the _Others_ table. We can see that there are 352 cases where the borrowing reason, EmploymentStatus, Occupation all are _Others_ and 95 cases where _Occupation_ is left blank.
+    
+These above points, specially the last one says not all the bowrrower's information is revealed or in some cases they seemed to be fake too. 
