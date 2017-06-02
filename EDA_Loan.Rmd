@@ -2,11 +2,11 @@
 title: "Prosper Loan Data Analysis"
 author: "Mayukh Sarkar"
 output:
+  prettydoc::html_pretty:
+    highlight: github
+    theme: cayman
   pdf_document: default
-  html_notebook: default
-  html_document: default
-header-includes:
-- \usepackage{booktabs}
+header-includes: \usepackage{booktabs}
 ---
 
 ## Loading the packages
@@ -22,6 +22,7 @@ suppressMessages(library(magrittr))
 suppressMessages(library(Kmisc))
 suppressMessages(library(xtable))
 suppressMessages(library(knitr))
+suppressMessages(library(DT))
 ```
 
 ## Loading the dataset
@@ -200,7 +201,6 @@ ggplot(aes(x = reorder(category, freq), y = freq, fill = freq), data = loanData.
     ylab('Percentage') +
     xlab('Loan Categories') +
     theme(axis.text.y = element_text(face = 'bold.italic', colour = 'darkblue'))
-    
 ```
 
 ## Loan for Loans !!
@@ -223,69 +223,68 @@ other.borrowers <- loanData %>%
 ```
 ```{r echo=FALSE}
 ######### This is for knitr in HTML ############
-# datatable(a, 
-#           colnames = c('Employment Status' = 'EmploymentStatus', 'Occupation' = 'Occupation', 'Total' = 'n'), 
-#           class = 'stripe', 
-#           rownames = FALSE,
-#           filter = 'top', 
-#           options = list(
-#               pageLength = 5, 
-#               autoWidth = TRUE, 
-#               columnDefs = list(list(targets = c(1, 2), searchable = FALSE))
-#               ))
+datatable(other.borrowers,
+          colnames = c('Employment Status' = 'EmploymentStatus', 'Occupation' = 'Occupation', 'Total' = 'n'),
+          class = 'stripe',
+          rownames = FALSE,
+          filter = 'top',
+          options = list(
+              pageLength = 5,
+              autoWidth = TRUE,
+              columnDefs = list(list(targets = c(1, 2), searchable = FALSE))
+              ))
 ```
 ```{r results='asis', echo=FALSE}
-
 ######## This is for for knitr in PDF  #########
-employed <- other.borrowers %>%
-    filter(EmploymentStatus == 'Employed') %>%
-    dplyr::select(-EmploymentStatus)
-full.time <- other.borrowers %>%
-    filter(EmploymentStatus == 'Full-time') %>%
-    dplyr::select(-EmploymentStatus)
-part.time <- other.borrowers %>%
-    filter(EmploymentStatus == 'Part-time') %>%
-    dplyr::select(-EmploymentStatus)
-self.employed <- other.borrowers %>%
-    filter(EmploymentStatus == 'Self-employed') %>%
-    dplyr::select(-EmploymentStatus)
-others <- other.borrowers %>%
-    filter(EmploymentStatus == 'Retired' | EmploymentStatus == 'Other')
-
-t1 <- kable(employed, format = "latex", booktabs = TRUE)
-t2 <- kable(full.time, format = "latex", booktabs = TRUE)
-t3 <- kable(part.time, format = "latex", booktabs = TRUE)
-t4 <- kable(self.employed, format = "latex", booktabs = TRUE)
-t5 <- kable(others, format = "latex", booktabs = TRUE)
-cat(c("\\begin{table}[!htb]
-    \\begin{minipage}{.5\\linewidth}
-      \\caption{ Employed }
-      \\centering",
-        t1,
-    "\\end{minipage}%
-    \\begin{minipage}{.5\\linewidth}
-      \\centering
-        \\caption{ Full-time }",
-        t2,
-    "\\end{minipage}
-    \\begin{minipage}{.5\\linewidth}
-      \\centering
-        \\caption{ Part-time }",
-        t3,
-    "\\end{minipage}%
-    \\begin{minipage}{.5\\linewidth}
-      \\centering
-        \\caption{ Self-employed }",
-        t4,
-    "\\end{minipage}
-    \\centering
-    \\begin{minipage}{.5\\linewidth}
-      \\centering
-        \\caption{ Others }",
-        t5,
-    "\\end{minipage}
-\\end{table}"
-))
+# employed <- other.borrowers %>%
+#     filter(EmploymentStatus == 'Employed') %>%
+#     dplyr::select(-EmploymentStatus)
+# full.time <- other.borrowers %>%
+#     filter(EmploymentStatus == 'Full-time') %>%
+#     dplyr::select(-EmploymentStatus)
+# part.time <- other.borrowers %>%
+#     filter(EmploymentStatus == 'Part-time') %>%
+#     dplyr::select(-EmploymentStatus)
+# self.employed <- other.borrowers %>%
+#     filter(EmploymentStatus == 'Self-employed') %>%
+#     dplyr::select(-EmploymentStatus)
+# others <- other.borrowers %>%
+#     filter(EmploymentStatus == 'Retired' | EmploymentStatus == 'Other')
+# 
+# t1 <- kable(employed, format = "latex", booktabs = TRUE)
+# t2 <- kable(full.time, format = "latex", booktabs = TRUE)
+# t3 <- kable(part.time, format = "latex", booktabs = TRUE)
+# t4 <- kable(self.employed, format = "latex", booktabs = TRUE)
+# t5 <- kable(others, format = "latex", booktabs = TRUE)
+# cat(c("\\begin{table}[!htb]
+#     \\begin{minipage}{.5\\linewidth}
+#       \\caption{ Employed }
+#       \\centering",
+#         t1,
+#     "\\end{minipage}%
+#     \\begin{minipage}{.5\\linewidth}
+#       \\centering
+#         \\caption{ Full-time }",
+#         t2,
+#     "\\end{minipage}
+#     \\begin{minipage}{.5\\linewidth}
+#       \\centering
+#         \\caption{ Part-time }",
+#         t3,
+#     "\\end{minipage}%
+#     \\begin{minipage}{.5\\linewidth}
+#       \\centering
+#         \\caption{ Self-employed }",
+#         t4,
+#     "\\end{minipage}
+#     \\centering
+#     \\begin{minipage}{.5\\linewidth}
+#       \\centering
+#         \\caption{ Others }",
+#         t5,
+#     "\\end{minipage}
+# \\end{table}"
+# ))
 ```
 
 We can see some really strange things happening here. In fact there are so many strange things that I have to list them down
@@ -298,4 +297,31 @@ We can see some really strange things happening here. In fact there are so many 
 
 **Lastly** there are some dubious borrowes in the _Others_ table. We can see that there are 352 cases where the borrowing reason, EmploymentStatus, Occupation all are _Others_ and 95 cases where _Occupation_ is left blank.
     
-These above points, specially the last one says not all the bowrrower's information is revealed or in some cases they seemed to be fake too. 
+These above points, specially the last one says not all the bowrrower's information is revealed or in some cases they seemed to be fake too. I guess it is a partial dead end for us to see why people mention _Other_ as a reason while opting for loan.
+
+Let's now move into something more computational. Let's first see after working for how many yaers, people like to opt for a loan? We can then move into some deeper level of analysis.
+
+## Does experienced people opt for loan lesser ?
+```{r, fig.height=5, fig.width=11}
+borrower.experience <- loanData %>%
+    filter(!is.na(EmploymentStatusDuration))
+
+hist1 <- ggplot(aes(x = EmploymentStatusDuration / 12), data = borrower.experience) +
+         geom_histogram(binwidth = 2, color = 'red', fill = 'deeppink', alpha = 1/2) +
+         theme_pander() +
+         scale_x_continuous(breaks = seq(min(borrower.experience$EmploymentStatusDuration),
+                                        max(borrower.experience$EmploymentStatusDuration),
+                                        2)) +
+         coord_cartesian(xlim = c(0, 41)) +
+         xlab('\nTotal experience in years')
+
+hist2 <- ggplot(aes(x = EmploymentStatusDuration / 12), data = borrower.experience) +
+         geom_histogram(binwidth = 1, color = 'black', aes(fill = ..count..)) +
+         theme_pander() + 
+         coord_cartesian(xlim = c(2, 12)) +
+         scale_x_continuous(breaks = seq(2, 12, 1)) +
+         xlab('\nExperience in years (95% Quartile)') +
+         scale_fill_gradient("Count", low = "darkslategray1", high = "darkslategrey")
+grid.arrange(hist1, hist2, ncol = 2, nrow = 1) 
+
+```
