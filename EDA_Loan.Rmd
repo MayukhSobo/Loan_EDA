@@ -3,9 +3,11 @@ title: "Prosper Loan Data Analysis"
 author: "Mayukh Sarkar"
 output:
   prettydoc::html_pretty:
-    highlight: github
+    highlight: vignette
     theme: cayman
-  pdf_document: default
+  pdf_document:
+    highlight: zenburn
+  html_notebook: default
 header-includes: \usepackage{booktabs}
 ---
 
@@ -36,7 +38,7 @@ The first question that needs to be asked is HOW LONG PEOPLE USUALLY OPT FOR LOA
 loanData %>% 
     ggplot(aes(x = Term / 12)) +
         geom_histogram(binwidth = 1) +
-        theme_pander() + 
+        theme_hc() + 
         xlab('Term in Years') +
         ylab('How many?') + 
         scale_x_continuous(breaks = seq(1, 5, 2))
@@ -223,68 +225,68 @@ other.borrowers <- loanData %>%
 ```
 ```{r echo=FALSE}
 ######### This is for knitr in HTML ############
-datatable(other.borrowers,
-          colnames = c('Employment Status' = 'EmploymentStatus', 'Occupation' = 'Occupation', 'Total' = 'n'),
-          class = 'stripe',
-          rownames = FALSE,
-          filter = 'top',
-          options = list(
-              pageLength = 5,
-              autoWidth = TRUE,
-              columnDefs = list(list(targets = c(1, 2), searchable = FALSE))
-              ))
+# datatable(other.borrowers,
+#           colnames = c('Employment Status' = 'EmploymentStatus', 'Occupation' = 'Occupation', 'Total' = 'n'),
+#           class = 'stripe',
+#           rownames = FALSE,
+#           filter = 'top',
+#           options = list(
+#               pageLength = 5,
+#               autoWidth = TRUE,
+#               columnDefs = list(list(targets = c(1, 2), searchable = FALSE))
+#               ))
 ```
 ```{r results='asis', echo=FALSE}
 ######## This is for for knitr in PDF  #########
-# employed <- other.borrowers %>%
-#     filter(EmploymentStatus == 'Employed') %>%
-#     dplyr::select(-EmploymentStatus)
-# full.time <- other.borrowers %>%
-#     filter(EmploymentStatus == 'Full-time') %>%
-#     dplyr::select(-EmploymentStatus)
-# part.time <- other.borrowers %>%
-#     filter(EmploymentStatus == 'Part-time') %>%
-#     dplyr::select(-EmploymentStatus)
-# self.employed <- other.borrowers %>%
-#     filter(EmploymentStatus == 'Self-employed') %>%
-#     dplyr::select(-EmploymentStatus)
-# others <- other.borrowers %>%
-#     filter(EmploymentStatus == 'Retired' | EmploymentStatus == 'Other')
-# 
-# t1 <- kable(employed, format = "latex", booktabs = TRUE)
-# t2 <- kable(full.time, format = "latex", booktabs = TRUE)
-# t3 <- kable(part.time, format = "latex", booktabs = TRUE)
-# t4 <- kable(self.employed, format = "latex", booktabs = TRUE)
-# t5 <- kable(others, format = "latex", booktabs = TRUE)
-# cat(c("\\begin{table}[!htb]
-#     \\begin{minipage}{.5\\linewidth}
-#       \\caption{ Employed }
-#       \\centering",
-#         t1,
-#     "\\end{minipage}%
-#     \\begin{minipage}{.5\\linewidth}
-#       \\centering
-#         \\caption{ Full-time }",
-#         t2,
-#     "\\end{minipage}
-#     \\begin{minipage}{.5\\linewidth}
-#       \\centering
-#         \\caption{ Part-time }",
-#         t3,
-#     "\\end{minipage}%
-#     \\begin{minipage}{.5\\linewidth}
-#       \\centering
-#         \\caption{ Self-employed }",
-#         t4,
-#     "\\end{minipage}
-#     \\centering
-#     \\begin{minipage}{.5\\linewidth}
-#       \\centering
-#         \\caption{ Others }",
-#         t5,
-#     "\\end{minipage}
-# \\end{table}"
-# ))
+employed <- other.borrowers %>%
+    filter(EmploymentStatus == 'Employed') %>%
+    dplyr::select(-EmploymentStatus)
+full.time <- other.borrowers %>%
+    filter(EmploymentStatus == 'Full-time') %>%
+    dplyr::select(-EmploymentStatus)
+part.time <- other.borrowers %>%
+    filter(EmploymentStatus == 'Part-time') %>%
+    dplyr::select(-EmploymentStatus)
+self.employed <- other.borrowers %>%
+    filter(EmploymentStatus == 'Self-employed') %>%
+    dplyr::select(-EmploymentStatus)
+others <- other.borrowers %>%
+    filter(EmploymentStatus == 'Retired' | EmploymentStatus == 'Other')
+
+t1 <- kable(employed, format = "latex", booktabs = TRUE)
+t2 <- kable(full.time, format = "latex", booktabs = TRUE)
+t3 <- kable(part.time, format = "latex", booktabs = TRUE)
+t4 <- kable(self.employed, format = "latex", booktabs = TRUE)
+t5 <- kable(others, format = "latex", booktabs = TRUE)
+cat(c("\\begin{table}[!htb]
+    \\begin{minipage}{.5\\linewidth}
+      \\caption{ Employed }
+      \\centering",
+        t1,
+    "\\end{minipage}%
+    \\begin{minipage}{.5\\linewidth}
+      \\centering
+        \\caption{ Full-time }",
+        t2,
+    "\\end{minipage}
+    \\begin{minipage}{.5\\linewidth}
+      \\centering
+        \\caption{ Part-time }",
+        t3,
+    "\\end{minipage}%
+    \\begin{minipage}{.5\\linewidth}
+      \\centering
+        \\caption{ Self-employed }",
+        t4,
+    "\\end{minipage}
+    \\centering
+    \\begin{minipage}{.5\\linewidth}
+      \\centering
+        \\caption{ Others }",
+        t5,
+    "\\end{minipage}
+\\end{table}"
+))
 ```
 
 We can see some really strange things happening here. In fact there are so many strange things that I have to list them down
@@ -302,6 +304,7 @@ These above points, specially the last one says not all the bowrrower's informat
 Let's now move into something more computational. Let's first see after working for how many yaers, people like to opt for a loan? We can then move into some deeper level of analysis.
 
 ## Does experienced people opt for loan lesser ?
+
 ```{r, fig.height=5, fig.width=11}
 borrower.experience <- loanData %>%
     filter(!is.na(EmploymentStatusDuration))
@@ -321,7 +324,40 @@ hist2 <- ggplot(aes(x = EmploymentStatusDuration / 12), data = borrower.experien
          coord_cartesian(xlim = c(2, 12)) +
          scale_x_continuous(breaks = seq(2, 12, 1)) +
          xlab('\nExperience in years (95% Quartile)') +
-         scale_fill_gradient("Count", low = "darkslategray1", high = "darkslategrey")
+         scale_fill_gradient("Count", low = "darkslategray1", high = "darkslategrey") +
+         guides(fill=FALSE)
 grid.arrange(hist1, hist2, ncol = 2, nrow = 1) 
 
 ```
+
+## I was right ..:)
+
+Well this was really intersting. We can see that our assumption was overall correct because the as people gain experience in their jobs, lesser they opt for the loans. This may be due the fact that as people gain experinece their salary also increases and hence the lesser reason they find to opt for loans or the reason can be something different. We can also see in the right histogram of 95% quartile, most people opt for loans when they have almost 2 years of experience. 
+
+Lets explore it even more let's see the correlation between number of month a person has expericence and the EstimatedEffectiveYield variable that we have explored earlier. The question that we want to explore - 
+DOES LENDERS ASK FOR LESS INTEREST FORM THE BORROWERS WHO ARE MORE EXPERIENCED? This can be true because people with more job experience should have more potential to replay their loan better because they have higher paying jobs and hence their ProsperScore would be higher. And as we have seen that borrowers with better prosper score pay lesser to the lenders and lenders somehow prefer them.
+
+```{r}
+ggplot(aes(y = EmploymentStatusDuration / 12, x = EstimatedEffectiveYield, 
+           color = ProsperScore), 
+       data = subset(loanData, !is.na(ProsperScore))) +
+    geom_point(na.rm = T, position = 'jitter', alpha = 1 / 6, shape = 1) +
+    scale_color_brewer(type = 'div', palette = 'Spectral', direction = 1,
+                       guide = guide_legend(title = 'ProsperScore', reverse = T,
+                                            override.aes = list(alpha = 1, size = 2))) +
+    coord_cartesian(xlim = c(0.0, 0.3)) +
+    xlab('Actual yield interest of lenders') +
+    ylab('Boroower\'s Experience in Years') +
+    theme_pander()
+```
+
+As it seems from the scatter plot that the pattern seems to have no correlation. It means our assumption was not correct. Borrowers with better **EmploymentStatusDuration** don't seem to get any special relaxation from lenders in terms of interest each month. This can be further confirmed by checking the _Perarson's correlation Coefficient_. We see that the correlation coefficient is almost 0 (-0.0233).
+
+```{r}
+with(subset(loanData, !is.null(EmploymentStatusDuration) & 
+                !is.null(EstimatedEffectiveYield)), 
+     cor.test(EmploymentStatusDuration / 12, EstimatedEffectiveYield))
+```
+
+This also says that even though the true correlation is not ture and alternative hypothesis is accepted, their is some **serious statistical evidence of significance**. But if we look into the CI, it is within the range of -0.03 to -0.016 which is very small. Good R value is said a value < -0.3 or value > 0.3. This value is definitely not that large. Judging from the context atlest it is not. So we can say that there is **no practical significance.** Hence we can not tell with any confirmation that More Exprerienced Lenders end up paying Less/More interest to the Lenders.
+
