@@ -225,68 +225,68 @@ other.borrowers <- loanData %>%
 ```
 ```{r echo=FALSE}
 ######### This is for knitr in HTML ############
-# datatable(other.borrowers,
-#           colnames = c('Employment Status' = 'EmploymentStatus', 'Occupation' = 'Occupation', 'Total' = 'n'),
-#           class = 'stripe',
-#           rownames = FALSE,
-#           filter = 'top',
-#           options = list(
-#               pageLength = 5,
-#               autoWidth = TRUE,
-#               columnDefs = list(list(targets = c(1, 2), searchable = FALSE))
-#               ))
+datatable(other.borrowers,
+          colnames = c('Employment Status' = 'EmploymentStatus', 'Occupation' = 'Occupation', 'Total' = 'n'),
+          class = 'stripe',
+          rownames = FALSE,
+          filter = 'top',
+          options = list(
+              pageLength = 5,
+              autoWidth = TRUE,
+              columnDefs = list(list(targets = c(1, 2), searchable = FALSE))
+              ))
 ```
 ```{r results='asis', echo=FALSE}
 ######## This is for for knitr in PDF  #########
-employed <- other.borrowers %>%
-    filter(EmploymentStatus == 'Employed') %>%
-    dplyr::select(-EmploymentStatus)
-full.time <- other.borrowers %>%
-    filter(EmploymentStatus == 'Full-time') %>%
-    dplyr::select(-EmploymentStatus)
-part.time <- other.borrowers %>%
-    filter(EmploymentStatus == 'Part-time') %>%
-    dplyr::select(-EmploymentStatus)
-self.employed <- other.borrowers %>%
-    filter(EmploymentStatus == 'Self-employed') %>%
-    dplyr::select(-EmploymentStatus)
-others <- other.borrowers %>%
-    filter(EmploymentStatus == 'Retired' | EmploymentStatus == 'Other')
-
-t1 <- kable(employed, format = "latex", booktabs = TRUE)
-t2 <- kable(full.time, format = "latex", booktabs = TRUE)
-t3 <- kable(part.time, format = "latex", booktabs = TRUE)
-t4 <- kable(self.employed, format = "latex", booktabs = TRUE)
-t5 <- kable(others, format = "latex", booktabs = TRUE)
-cat(c("\\begin{table}[!htb]
-    \\begin{minipage}{.5\\linewidth}
-      \\caption{ Employed }
-      \\centering",
-        t1,
-    "\\end{minipage}%
-    \\begin{minipage}{.5\\linewidth}
-      \\centering
-        \\caption{ Full-time }",
-        t2,
-    "\\end{minipage}
-    \\begin{minipage}{.5\\linewidth}
-      \\centering
-        \\caption{ Part-time }",
-        t3,
-    "\\end{minipage}%
-    \\begin{minipage}{.5\\linewidth}
-      \\centering
-        \\caption{ Self-employed }",
-        t4,
-    "\\end{minipage}
-    \\centering
-    \\begin{minipage}{.5\\linewidth}
-      \\centering
-        \\caption{ Others }",
-        t5,
-    "\\end{minipage}
-\\end{table}"
-))
+# employed <- other.borrowers %>%
+#     filter(EmploymentStatus == 'Employed') %>%
+#     dplyr::select(-EmploymentStatus)
+# full.time <- other.borrowers %>%
+#     filter(EmploymentStatus == 'Full-time') %>%
+#     dplyr::select(-EmploymentStatus)
+# part.time <- other.borrowers %>%
+#     filter(EmploymentStatus == 'Part-time') %>%
+#     dplyr::select(-EmploymentStatus)
+# self.employed <- other.borrowers %>%
+#     filter(EmploymentStatus == 'Self-employed') %>%
+#     dplyr::select(-EmploymentStatus)
+# others <- other.borrowers %>%
+#     filter(EmploymentStatus == 'Retired' | EmploymentStatus == 'Other')
+# 
+# t1 <- kable(employed, format = "latex", booktabs = TRUE)
+# t2 <- kable(full.time, format = "latex", booktabs = TRUE)
+# t3 <- kable(part.time, format = "latex", booktabs = TRUE)
+# t4 <- kable(self.employed, format = "latex", booktabs = TRUE)
+# t5 <- kable(others, format = "latex", booktabs = TRUE)
+# cat(c("\\begin{table}[!htb]
+#     \\begin{minipage}{.5\\linewidth}
+#       \\caption{ Employed }
+#       \\centering",
+#         t1,
+#     "\\end{minipage}%
+#     \\begin{minipage}{.5\\linewidth}
+#       \\centering
+#         \\caption{ Full-time }",
+#         t2,
+#     "\\end{minipage}
+#     \\begin{minipage}{.5\\linewidth}
+#       \\centering
+#         \\caption{ Part-time }",
+#         t3,
+#     "\\end{minipage}%
+#     \\begin{minipage}{.5\\linewidth}
+#       \\centering
+#         \\caption{ Self-employed }",
+#         t4,
+#     "\\end{minipage}
+#     \\centering
+#     \\begin{minipage}{.5\\linewidth}
+#       \\centering
+#         \\caption{ Others }",
+#         t5,
+#     "\\end{minipage}
+# \\end{table}"
+# ))
 ```
 
 We can see some really strange things happening here. In fact there are so many strange things that I have to list them down
@@ -340,7 +340,7 @@ DOES LENDERS ASK FOR LESS INTEREST FORM THE BORROWERS WHO ARE MORE EXPERIENCED? 
 ```{r}
 ggplot(aes(y = EmploymentStatusDuration / 12, x = EstimatedEffectiveYield, 
            color = ProsperScore), 
-       data = subset(loanData, !is.na(ProsperScore))) +
+       data = subset(loanData, !is.na(loanData$ProsperScore))) +
     geom_point(na.rm = T, position = 'jitter', alpha = 1 / 6, shape = 1) +
     scale_color_brewer(type = 'div', palette = 'Spectral', direction = 1,
                        guide = guide_legend(title = 'ProsperScore', reverse = T,
@@ -361,3 +361,18 @@ with(subset(loanData, !is.null(EmploymentStatusDuration) &
 
 This also says that even though the true correlation is not ture and alternative hypothesis is accepted, their is some **serious statistical evidence of significance**. But if we look into the CI, it is within the range of -0.03 to -0.016 which is very small. Good R value is said a value < -0.3 or value > 0.3. This value is definitely not that large. Judging from the context atlest it is not. So we can say that there is **no practical significance.** Hence we can not tell with any confirmation that More Exprerienced Lenders end up paying Less/More interest to the Lenders.
 
+## How people loan for their Homes ?
+
+Here we are going to explore the people for two category. 
+
+    1. First those who are opting for loan to rennovation of home when they have a house.
+    2. Second those who opt for home loans even though they don't have house.
+
+
+```{r}
+loanData %>%
+    filter(ListingCategory..numeric. == 2, ProsperRating..Alpha. != "", IsBorrowerHomeowner != "") %>%
+    group_by(IsBorrowerHomeowner, ProsperRating..Alpha.) %>%
+    summarise(n = n()) %>%
+    mutate(freq = round(n / sum(n) * 100, 2))
+```
