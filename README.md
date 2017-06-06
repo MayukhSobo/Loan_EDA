@@ -16,7 +16,7 @@ The data is available in the CSV format and can be downloaded from
 5.	**BorrowerAPR :**
 6.	**BorrowerRate :**
 7.	**ListingCategory..numeric. :**
-8.	**EmploymentStatus : **
+8.	**EmploymentStatus :**
 9.	**Occupation :**
 10.	**EmploymentStatusDuration :**
 11.	**IsBorrowerHomeowner :**
