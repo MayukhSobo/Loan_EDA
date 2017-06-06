@@ -2,12 +2,12 @@
 title: "Prosper Loan Data Analysis"
 author: "Mayukh Sarkar"
 output:
+  pdf_document:
+    highlight: tango
+  html_notebook: default
   prettydoc::html_pretty:
     highlight: vignette
     theme: cayman
-  pdf_document:
-    highlight: zenburn
-  html_notebook: default
 header-includes: \usepackage{booktabs}
 ---
 
@@ -225,68 +225,68 @@ other.borrowers <- loanData %>%
 ```
 ```{r echo=FALSE}
 ######### This is for knitr in HTML ############
-datatable(other.borrowers,
-          colnames = c('Employment Status' = 'EmploymentStatus', 'Occupation' = 'Occupation', 'Total' = 'n'),
-          class = 'stripe',
-          rownames = FALSE,
-          filter = 'top',
-          options = list(
-              pageLength = 5,
-              autoWidth = TRUE,
-              columnDefs = list(list(targets = c(1, 2), searchable = FALSE))
-              ))
+# datatable(other.borrowers,
+#           colnames = c('Employment Status' = 'EmploymentStatus', 'Occupation' = 'Occupation', 'Total' = 'n'),
+#           class = 'stripe',
+#           rownames = FALSE,
+#           filter = 'top',
+#           options = list(
+#               pageLength = 5,
+#               autoWidth = TRUE,
+#               columnDefs = list(list(targets = c(1, 2), searchable = FALSE))
+#               ))
 ```
 ```{r results='asis', echo=FALSE}
 ######## This is for for knitr in PDF  #########
-# employed <- other.borrowers %>%
-#     filter(EmploymentStatus == 'Employed') %>%
-#     dplyr::select(-EmploymentStatus)
-# full.time <- other.borrowers %>%
-#     filter(EmploymentStatus == 'Full-time') %>%
-#     dplyr::select(-EmploymentStatus)
-# part.time <- other.borrowers %>%
-#     filter(EmploymentStatus == 'Part-time') %>%
-#     dplyr::select(-EmploymentStatus)
-# self.employed <- other.borrowers %>%
-#     filter(EmploymentStatus == 'Self-employed') %>%
-#     dplyr::select(-EmploymentStatus)
-# others <- other.borrowers %>%
-#     filter(EmploymentStatus == 'Retired' | EmploymentStatus == 'Other')
-# 
-# t1 <- kable(employed, format = "latex", booktabs = TRUE)
-# t2 <- kable(full.time, format = "latex", booktabs = TRUE)
-# t3 <- kable(part.time, format = "latex", booktabs = TRUE)
-# t4 <- kable(self.employed, format = "latex", booktabs = TRUE)
-# t5 <- kable(others, format = "latex", booktabs = TRUE)
-# cat(c("\\begin{table}[!htb]
-#     \\begin{minipage}{.5\\linewidth}
-#       \\caption{ Employed }
-#       \\centering",
-#         t1,
-#     "\\end{minipage}%
-#     \\begin{minipage}{.5\\linewidth}
-#       \\centering
-#         \\caption{ Full-time }",
-#         t2,
-#     "\\end{minipage}
-#     \\begin{minipage}{.5\\linewidth}
-#       \\centering
-#         \\caption{ Part-time }",
-#         t3,
-#     "\\end{minipage}%
-#     \\begin{minipage}{.5\\linewidth}
-#       \\centering
-#         \\caption{ Self-employed }",
-#         t4,
-#     "\\end{minipage}
-#     \\centering
-#     \\begin{minipage}{.5\\linewidth}
-#       \\centering
-#         \\caption{ Others }",
-#         t5,
-#     "\\end{minipage}
-# \\end{table}"
-# ))
+employed <- other.borrowers %>%
+    filter(EmploymentStatus == 'Employed') %>%
+    dplyr::select(-EmploymentStatus)
+full.time <- other.borrowers %>%
+    filter(EmploymentStatus == 'Full-time') %>%
+    dplyr::select(-EmploymentStatus)
+part.time <- other.borrowers %>%
+    filter(EmploymentStatus == 'Part-time') %>%
+    dplyr::select(-EmploymentStatus)
+self.employed <- other.borrowers %>%
+    filter(EmploymentStatus == 'Self-employed') %>%
+    dplyr::select(-EmploymentStatus)
+others <- other.borrowers %>%
+    filter(EmploymentStatus == 'Retired' | EmploymentStatus == 'Other')
+
+t1 <- kable(employed, format = "latex", booktabs = TRUE)
+t2 <- kable(full.time, format = "latex", booktabs = TRUE)
+t3 <- kable(part.time, format = "latex", booktabs = TRUE)
+t4 <- kable(self.employed, format = "latex", booktabs = TRUE)
+t5 <- kable(others, format = "latex", booktabs = TRUE)
+cat(c("\\begin{table}[!htb]
+    \\begin{minipage}{.5\\linewidth}
+      \\caption{ Employed }
+      \\centering",
+        t1,
+    "\\end{minipage}%
+    \\begin{minipage}{.5\\linewidth}
+      \\centering
+        \\caption{ Full-time }",
+        t2,
+    "\\end{minipage}
+    \\begin{minipage}{.5\\linewidth}
+      \\centering
+        \\caption{ Part-time }",
+        t3,
+    "\\end{minipage}%
+    \\begin{minipage}{.5\\linewidth}
+      \\centering
+        \\caption{ Self-employed }",
+        t4,
+    "\\end{minipage}
+    \\centering
+    \\begin{minipage}{.5\\linewidth}
+      \\centering
+        \\caption{ Others }",
+        t5,
+    "\\end{minipage}
+\\end{table}"
+))
 ```
 
 We can see some really strange things happening here. In fact there are so many strange things that I have to list them down
@@ -305,7 +305,7 @@ Let's now move into something more computational. Let's first see after working 
 
 ## Does experienced people opt for loan lesser ?
 
-```{r, fig.height=5, fig.width=11}
+```{r, fig.height=4, fig.width=11}
 borrower.experience <- loanData %>%
     filter(!is.na(EmploymentStatusDuration))
 
@@ -370,9 +370,39 @@ Here we are going to explore the people for two category.
 
 
 ```{r}
-loanData %>%
-    filter(ListingCategory..numeric. == 2, ProsperRating..Alpha. != "", IsBorrowerHomeowner != "") %>%
+home.loans <- loanData %>%
+    filter(ListingCategory..numeric. == 2, 
+           ProsperRating..Alpha. != "", 
+           IsBorrowerHomeowner != "") %>%
     group_by(IsBorrowerHomeowner, ProsperRating..Alpha.) %>%
     summarise(n = n()) %>%
     mutate(freq = round(n / sum(n) * 100, 2))
+levels(home.loans$IsBorrowerHomeowner) <- c('No Home', 'Has Home')
+home.loans$ProsperRating..Alpha. <- factor(home.loans$ProsperRating..Alpha., ordered = T,
+                                           levels = c('AA', 'A', 'B', 'C', 'D', 'E', 'HR'))
+home.loans <- arrange(home.loans, ProsperRating..Alpha.)
 ```
+
+**Now let's plot the data**
+
+```{r}
+ggplot(aes(x = ProsperRating..Alpha., y = freq, 
+           fill = IsBorrowerHomeowner), data = home.loans) +
+    geom_bar(stat = 'identity', position="dodge", color = 'white') +
+    theme_hc() +
+    scale_fill_fivethirtyeight() +
+    xlab('Prosper Ratings for borrowers') +
+    ylab('% of borrowers')
+```
+
+## Are Investors partial to Borrowers with better rating ??
+
+Here we visualizing an interesting trend. We are seeing for people with ProsperRating of _AA, A & B_, number of people opted for loan mentioning the reason for laon as **Home Improvement** but still has no home is more than the people who has home and opted for loan for Home Improvement and truly a home owner. But for people with poor rating, the trend in opposite and expected also. People who don't have any house should not get any loan mentioning the loan reason of House Improvement. These whole thing shows not only lenders give much preference to Rating over Verification and KYC (Know Your Customer) but this also shows irrespective of rating of borrowers, lenders dont care much about laon reason as a whole. The following code proves it even more. We can see that there are not a single borrowers who mentioned their loan purpose to be Home Improvement when they didn't have their own house and their loan was not approved. That's a strong evidence to show that investors don't care much about how much borrowers fudge or fake their loan purpose.
+
+```{r}
+
+a <- loanData %>%
+    filter(ListingCategory..numeric. == 2, LoanStatus == 'Cancelled')
+print.numeric_version(dim(a)[0])
+```
+
