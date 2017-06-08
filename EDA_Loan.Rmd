@@ -400,9 +400,46 @@ ggplot(aes(x = ProsperRating..Alpha., y = freq,
 Here we visualizing an interesting trend. We are seeing for people with ProsperRating of _AA, A & B_, number of people opted for loan mentioning the reason for laon as **Home Improvement** but still has no home is more than the people who has home and opted for loan for Home Improvement and truly a home owner. But for people with poor rating, the trend in opposite and expected also. People who don't have any house should not get any loan mentioning the loan reason of House Improvement. These whole thing shows not only lenders give much preference to Rating over Verification and KYC (Know Your Customer) but this also shows irrespective of rating of borrowers, lenders dont care much about laon reason as a whole. The following code proves it even more. We can see that there are not a single borrowers who mentioned their loan purpose to be Home Improvement when they didn't have their own house and their loan was not approved. That's a strong evidence to show that investors don't care much about how much borrowers fudge or fake their loan purpose.
 
 ```{r}
-
 a <- loanData %>%
     filter(ListingCategory..numeric. == 2, LoanStatus == 'Cancelled')
 print.numeric_version(dim(a)[0])
 ```
+## What's up with the people having dubious income sources ?
 
+```{r}
+dubious.borrowers <- loanData %>%
+    filter(ListingCategory..numeric. == 7, 
+           Occupation == 'Other', 
+           EmploymentStatus == 'Other',
+           IncomeVerifiable == 'False') %>%
+    group_by(ProsperRating..Alpha.) %>%
+    summarise(n = n()) %>%
+    mutate(freq = round(n / sum(n) * 100, 2))
+dubious.borrowers$ProsperRating..Alpha. <- ordered(dubious.borrowers$ProsperRating..Alpha., 
+                                                    levels = c('AA', 'A', 'B', 'C', 'D', 'E', 'HR'))
+dubious.borrowers <- arrange(dubious.borrowers, ProsperRating..Alpha.)
+```
+
+```{r}
+ggplot(aes(x = ProsperRating..Alpha., y = freq, fill = freq), 
+       data = dubious.borrowers) +
+    geom_bar(stat = 'identity', position="dodge") + 
+    theme_pander() +
+    scale_fill_continuous(low = 'deepskyblue1', high = 'dodgerblue4') +
+    guides(fill=FALSE) +
+    xlab('\nProsper rating for borrowers') +
+    ylab('% of borrowers') +
+    geom_text(aes(label = sprintf("%2.1f%%", round(freq, 2))), 
+              color="dodgerblue4", size = 5.5, nudge_y = 1, 
+              fontface = 'bold', family = 'Arial Black',
+              nudge_x = 0.06) +
+    theme(axis.text.x = element_text(face = 'bold.italic', colour = 'dodgerblue4', size = 15),
+          axis.text.y=element_blank(),
+          axis.title.x = element_text(face = 'bold', colour = 'dodgerblue4', size = 16),
+          axis.title.y = element_text(face = 'bold', colour = 'dodgerblue4', size = 16))
+    
+```
+
+## Prosper rating system seems legit !!
+
+Although we can't see any specific pattern among the dubious borrowers but we can see one thing very well. Overall borrowers with better ratings tends to be less dubious than borrowers with poor ratings. One more interesting thing is that the above barchart does not inlude borrowers with _AA_ rating. It means that the best borrowers are really best and the prosper rating really works. 
