@@ -1,0 +1,466 @@
+---
+title: "Prosper Loan Data Analysis"
+author: "Mayukh Sarkar"
+output:
+  prettydoc::html_pretty:
+    highlight: vignette
+    theme: cayman
+  pdf_document:
+    highlight: tango
+  html_notebook: default
+header-includes: \usepackage{booktabs}
+---
+
+## Loading the packages
+```{r}
+suppressMessages(library(ggplot2))
+suppressMessages(library(ggthemes))
+suppressMessages(library(dplyr))
+suppressMessages(library(reshape2))
+suppressMessages(library(memisc))
+suppressMessages(library(gridExtra))
+suppressMessages(library(RColorBrewer))
+suppressMessages(library(magrittr))
+suppressMessages(library(Kmisc))
+suppressMessages(library(xtable))
+suppressMessages(library(knitr))
+suppressMessages(library(DT))
+suppressMessages(library(scales))
+```
+
+## Loading the dataset
+```{r}
+loanData <- read.csv('prosperLoanData.csv')
+```
+
+## The first Qustion
+The first question that needs to be asked is HOW LONG PEOPLE USUALLY OPT FOR LOAN? Let's answer this question with a histogram
+```{r}
+loanData %>% 
+    ggplot(aes(x = Term / 12)) +
+        geom_histogram(binwidth = 1) +
+        theme_hc() + 
+        xlab('Term in Years') +
+        ylab('How many?') + 
+        scale_x_continuous(breaks = seq(1, 5, 2))
+```
+
+We can see that people don't really loan any amount for less than one year and the most popular loan amount is of 3 years although some people do choose for 5 years. Now lets assume something and check if it is correct or not. I assume that people who opted for 1 year would fail to repay their loan more as compared to the people who opted for 3 or 5 years. But is it true? So the next question is
+DOES PEOPLE REPAY THE LOANS BETTER WHEN THEY ARE GIVEN MORE TIME?
+
+```{r}
+totalLoanTermes <- loanData %>%
+    group_by(Term) %>%
+    summarise(n = n()) %>%
+    use_series(n)
+totalLoanTermes <- rep(totalLoanTermes, each = 2)
+loanData.two_status <- loanData %>%
+    group_by(Term, LoanStatus) %>%
+    summarise(n = n()) %>%
+    filter(LoanStatus == 'Completed' | LoanStatus == 'Defaulted')
+loanData.two_status$percent = (loanData.two_status$n / totalLoanTermes) * 100
+```
+Now let's plot the data
+```{r}
+ggplot(aes(x = Term / 12, y = percent, fill = LoanStatus), 
+       data = loanData.two_status) +
+    geom_bar(stat = 'identity', position="dodge", color = 'black') + 
+    scale_x_continuous(breaks = c(1, 3, 5)) +
+    xlab('Loan term in years') + 
+    theme_pander() +
+    coord_flip()
+```
+
+That's unusual because for **LoanStatus** of _Completed_, we see a trend but not in **LoanStatus** of _Defaulted_ though. Now just because some customer's loan status is not Completed, doesn't mean his/her loan status is Defaulted.
+The reason we are exploring this is because we want to find if BANKS SHOULD FOCUS ON CUSTOMERS OPTING LOANS FOR SMALLER TERMS OR NOT? For this getting data of only two loan status won't be enough. So let's divide the customers into two groups
+
+    1. Good Customer
+    2. Bad Customer
+
+
+## The bigger picture
+```{r}
+loanData.gb <- loanData %>%
+    group_by(Term, LoanStatus) %>%
+    summarise(n = n()) %>%
+    mutate(customer_type = ifelse((LoanStatus == 'Current' | 
+                                   LoanStatus == 'Completed'| 
+                                   LoanStatus == 'FinalPaymentInProgress'),
+                                  'good', 'bad')) %>%
+    filter(LoanStatus != 'Cancelled') %>%
+    mutate(freq = n / sum(n) * 100) %>%
+    ungroup() %>%
+    group_by(Term, customer_type) %>%
+    summarise(n = sum(freq))
+```
+## Plotting the trend of different customer types
+```{r}
+ggplot(aes(x = Term / 12, y = n, fill = customer_type), data = loanData.gb) +
+    geom_bar(stat = 'identity', position="dodge") + 
+    theme_pander() +
+    xlab('Loan term in years') +
+    ylab('Percentage') +
+    scale_x_continuous(breaks = c(1, 3, 5)) +
+    geom_text(aes(label = sprintf("%2.1f%%", round(n, 2)), vjust = -.5), color="black") +
+    facet_wrap(~customer_type) +
+    scale_fill_hc()
+```
+As we can that the short and long term prospects of the banks who issues the loan seems good because both in 1 and 5 year category, we see more number of good customers as compared to the 3 years. The number of good customers is however decreased a little from 1 year to 5 years but as compared to 3 years it is nothing. This may mean that banks should focus in long and short term customers as compared to medium term customers. But we should take this fact with a grain of slat because there might be other factors that may affect this trend. Only further exploration of the data would reveal that.
+
+## EstimatedEffectiveYield - A better measure for a successful Lender
+```{r}
+ggplot(aes(x = EstimatedEffectiveYield), data = loanData) +
+    geom_histogram(aes(y = ..density..), bins = 100, na.rm = T, 
+                   color = 'darkblue', fill = 'lightblue') +
+    theme_hc() +
+    scale_x_continuous(limits = c(-0.1827, 0.3199), 
+                       breaks = seq(-0.1827, 0.3199, 0.05)) +
+    geom_density(alpha=.2, fill="#FF6666", na.rm = T) + 
+    geom_vline(aes(xintercept=mean(EstimatedEffectiveYield, na.rm=T)), 
+               color="blue", linetype="dashed", size=1)
+```
+
+**EstimatedEffectiveYield** is said to be better estimate for the lenders than the interest rate because the interest includes _processing fees_, _uncollected interest due to borrower being chargedoff_. Plus it also doesn't include _late fines_. Hence EstimatedEffectiveYield takes account for all these things and it is thus a better measure. Above we are trying to see the distribution of the EstimatedEffectiveYield and we can see that it is multimodal. We see the most popular EstimatedEffectiveYield is around 0.3 while the mean is around 0.17 represented by the blue dotted line. The multimodal pattern shows that there are multiple EstimatedEffectiveYield that is popular. Strangely we can also see that the some customers have negative EstimatedEffectiveYield. This may mean a lot of things. This may mean that their BorrowerRate is a lot lower than their _service fee rate_ or these customer's _uncollected interest on chargeoff_ is lot more or they just never payed the late fee and payed back the loans along with the interest always on time.
+
+## Does Lenders prefer borrowers with better Prosper Score ? 
+
+Now lets see what is the distribution of EstimatedEffectiveYield depending on the different **ProsperScore**. This is important because we want to answer a question, i.e., IF LENDERS GET MORE EstimatedEffectiveYield IF THEY HAVE BETTER ProsperScore ?
+
+We are using violin plot instead of box plot for this.
+
+```{r}
+loanData$ProsperScore <- factor(loanData$ProsperScore)
+ggplot(aes(x = ProsperScore, y = EstimatedEffectiveYield, fill=ProsperScore), 
+       data = subset(loanData, !is.na(loanData$ProsperScore) & 
+                         !is.na(loanData$EstimatedEffectiveYield))) +
+    geom_violin(trim = F, scale = "width") +
+    stat_summary(fun.y=median, geom="point", size=2, color="black") +
+    scale_fill_manual(values=colorRampPalette(c("pink", "lightgreen"))(11)) + 
+    theme_minimal() +
+    xlab('\nScore for Risk Factor') +
+    ylab('Effective yeild of Lenders')
+```
+
+Well this is interesting. We see an wonderful trend here. Here more score for the risk factor means better the borrower and lesser score for risk factor means poor prospects from the borrowers. We can see that for lower ProsperScore distribution of effective yield in a lot more than the higher ProsperScore. This may mean that lenders charges a variety of interest rate from the borrower with poor prospects as compared to borrowers with better prospect. We can also notice how median (represented by the black dot) is decreasing as ProsperScore is increasing. This may mean that lenders give more relaxations to borrowers with better ratings as compared to borrowers with poor rating. Does that mean lenders trust and like borrowers with better ProsperScore! Let's do a little more analysis to reveal it more. The reason we need more exploration on this is because EstimatedEffectiveYield includes more things such as late fine and doesn't include processing fee and others. So more EstimatedEffectiveYield for lesser ProsperScore borrowers may be due to high late fines because lesser ProsperScore borrowers are more prone to fail to repay their loan on time each month. So, Let's see if borrower's interest rate shows the same trend for each ProsperScore categories or not because interest rates doesn't include late fines. 
+
+```{r, fig.height=5, fig.width=14}
+borrower_apr <- ggplot(aes(x = ProsperScore, y = BorrowerAPR, color=ProsperScore), 
+       data = subset(loanData, !is.na(loanData$ProsperScore) & 
+                         !is.na(loanData$BorrowerAPR))) +
+    geom_jitter(shape=2, position=position_jitter(0.2)) +
+    stat_summary(fun.y=median, geom="point", size=2, color="black") +
+    scale_color_manual(values=colorRampPalette(c("lightblue", "dodgerblue4"))(11)) + 
+    theme_pander() +
+    xlab('\nScore for Risk Factor') +
+    ylab('Annual Percentage Rate')
+
+borrower_rate <- ggplot(aes(x = ProsperScore, y = BorrowerRate, color=ProsperScore), 
+       data = subset(loanData, !is.na(loanData$ProsperScore) & 
+                         !is.na(loanData$BorrowerRate))) +
+    geom_jitter(shape=2, position=position_jitter(0.2)) +
+    stat_summary(fun.y=median, geom="point", size=2, color="black") +
+    scale_color_manual(values=colorRampPalette(c("orange", "chocolate3"))(11)) + 
+    theme_pander() +
+    xlab('\nScore for Risk Factor') +
+    ylab('Annual Percentage Rate')
+
+grid.arrange(borrower_apr, borrower_rate, nrow = 1, ncol = 2)
+```
+
+Finally things are revealed much better now! We can clearly observe that for both _BorrowerAPR_ and _BorrowerRate_ which are metric for interest rates, we see a declining trend as the _ProsperScore_ is increasing. This justifies the fact even more that lenders somehow prefers to charge less for all the borrowers with better ProsperScore as compared to borrowers with inferior ProsperScore. Here food for thought is that is it moral too? Well I guess no amount of EDA can reveal it.
+
+But are we missing the real question here? We are performing all these analysis on the Prosper loan data to answer several questions but what is the most important thing for a loan ? It's **BORROWERS** and what is the most important question related to borrowers? 
+
+## What people want loans for?
+```{r, fig.height=7, fig.width=10}
+categories <- c("Debt\nConsolidation", "Home\nImprovement", "Business",
+               "Personal\nLoan", "Student Use", "Auto",
+               "Other", "Baby", "Boat",
+               "Cosmetic\nProcedure", "Engagement\nRing", "Green\nLoans",
+               "Household\nExpenses", "Large\nPurchases", "Medical",
+               "Motorcycle", "RV", "Taxes", "Vaccation", "Wedding\nLoans")
+mapBorrowerCategory <- function(categoryNumber) {
+    ifelse(categoryNumber == 0, 'na', categories[categoryNumber])
+}
+
+loanData.reasons <- loanData %>%
+    group_by(ListingCategory..numeric.) %>%
+    summarise(n = n()) %>%
+    filter(ListingCategory..numeric. != 0) %>%
+    mutate(category = mapBorrowerCategory(ListingCategory..numeric.), 
+           freq = n / sum(n) * 100) %>%
+    arrange(n) %>%
+    dplyr::select(-ListingCategory..numeric.)
+
+loanData.reasons$category <- factor(loanData.reasons$category)
+ggplot(aes(x = reorder(category, freq), y = freq, fill = freq), data = loanData.reasons) +
+    geom_bar(stat = 'identity', position="dodge") +
+    theme_pander() +
+    scale_fill_gradient(low = 'lightblue', high = 'darkblue') +
+    coord_flip() +
+    guides(fill=FALSE) +
+    geom_text(aes(label = sprintf("%2.1f%%", round(freq, 2))), 
+              color="black", size = 5, nudge_y = 3) +
+    ylab('Percentage') +
+    xlab('Loan Categories') +
+    theme(axis.text.y = element_text(face = 'bold.italic', colour = 'darkblue'))
+```
+
+## Loan for Loans !!
+
+It is really strange that people took loans to reimburse loans/debts and lenders also issued loans to these people. Isn't is a bad idea to take laons to pay for loans? Aren't we falling into a vicious cycle? We can also see that Home Inprovement is above Medical which may mean well insured population or negligence toward health. The other section with more than 10% of the loans would remain unknown. Why the loan reason would be unknown? Does it indicate any illegal reason to opt for loan! Let's explore this more. Let's see the Occupation and Employment status of Borrowers for all the loans falling into the _others_ section.
+
+## Who are others??
+```{r}
+other.borrowers <- loanData %>%
+    filter(ListingCategory..numeric. == 7) %>%
+    group_by(EmploymentStatus, Occupation) %>%
+    summarise(n = n()) %>%
+    filter(!is.na(Occupation)) %>%
+    ungroup() %>%
+    arrange(EmploymentStatus, desc(n)) %>%
+    ungroup() %>%
+    group_by(EmploymentStatus) %>%
+    top_n(n = 5, wt = n) %>%
+    ungroup()
+```
+```{r echo=FALSE}
+######### This is for knitr in HTML ############
+# datatable(other.borrowers,
+#           colnames = c('Employment Status' = 'EmploymentStatus', 'Occupation' = 'Occupation', 'Total' = 'n'),
+#           class = 'stripe',
+#           rownames = FALSE,
+#           filter = 'top',
+#           options = list(
+#               pageLength = 5,
+#               autoWidth = TRUE,
+#               columnDefs = list(list(targets = c(1, 2), searchable = FALSE))
+#               ))
+```
+```{r results='asis', echo=FALSE}
+######## This is for for knitr in PDF  #########
+employed <- other.borrowers %>%
+    filter(EmploymentStatus == 'Employed') %>%
+    dplyr::select(-EmploymentStatus)
+full.time <- other.borrowers %>%
+    filter(EmploymentStatus == 'Full-time') %>%
+    dplyr::select(-EmploymentStatus)
+part.time <- other.borrowers %>%
+    filter(EmploymentStatus == 'Part-time') %>%
+    dplyr::select(-EmploymentStatus)
+self.employed <- other.borrowers %>%
+    filter(EmploymentStatus == 'Self-employed') %>%
+    dplyr::select(-EmploymentStatus)
+others <- other.borrowers %>%
+    filter(EmploymentStatus == 'Retired' | EmploymentStatus == 'Other')
+
+t1 <- kable(employed, format = "latex", booktabs = TRUE)
+t2 <- kable(full.time, format = "latex", booktabs = TRUE)
+t3 <- kable(part.time, format = "latex", booktabs = TRUE)
+t4 <- kable(self.employed, format = "latex", booktabs = TRUE)
+t5 <- kable(others, format = "latex", booktabs = TRUE)
+cat(c("\\begin{table}[!htb]
+    \\begin{minipage}{.5\\linewidth}
+      \\caption{ Employed }
+      \\centering",
+        t1,
+    "\\end{minipage}%
+    \\begin{minipage}{.5\\linewidth}
+      \\centering
+        \\caption{ Full-time }",
+        t2,
+    "\\end{minipage}
+    \\begin{minipage}{.5\\linewidth}
+      \\centering
+        \\caption{ Part-time }",
+        t3,
+    "\\end{minipage}%
+    \\begin{minipage}{.5\\linewidth}
+      \\centering
+        \\caption{ Self-employed }",
+        t4,
+    "\\end{minipage}
+    \\centering
+    \\begin{minipage}{.5\\linewidth}
+      \\centering
+        \\caption{ Others }",
+        t5,
+    "\\end{minipage}
+\\end{table}"
+))
+```
+
+We can see some really strange things happening here. In fact there are so many strange things that I have to list them down
+    
+**Firstly** what is the difference between _Employed_ and _Full-time_?
+    
+**Secondly** there are too many others. The complete sample of the data is taken for those borrowers whose purpose for borrowing is _Others_. But there are _Others_ for _Occupation_ and _EmploymentStatus_ too. 
+
+**Thirdly** how can someone be _Retired_ but still has _Occupation Others_ ?
+
+**Lastly** there are some dubious borrowes in the _Others_ table. We can see that there are 352 cases where the borrowing reason, EmploymentStatus, Occupation all are _Others_ and 95 cases where _Occupation_ is left blank.
+    
+These above points, specially the last one says not all the bowrrower's information is revealed or in some cases they seemed to be fake too. I guess it is a partial dead end for us to see why people mention _Other_ as a reason while opting for loan.
+
+Let's now move into something more computational. Let's first see after working for how many yaers, people like to opt for a loan? We can then move into some deeper level of analysis.
+
+## Does experienced people opt for loan lesser ?
+
+```{r, fig.height=4, fig.width=11}
+borrower.experience <- loanData %>%
+    filter(!is.na(EmploymentStatusDuration))
+
+hist1 <- ggplot(aes(x = EmploymentStatusDuration / 12), data = borrower.experience) +
+         geom_histogram(binwidth = 2, color = 'red', fill = 'deeppink', alpha = 1/2) +
+         theme_pander() +
+         scale_x_continuous(breaks = seq(min(borrower.experience$EmploymentStatusDuration),
+                                        max(borrower.experience$EmploymentStatusDuration),
+                                        2)) +
+         coord_cartesian(xlim = c(0, 41)) +
+         xlab('\nTotal experience in years')
+
+hist2 <- ggplot(aes(x = EmploymentStatusDuration / 12), data = borrower.experience) +
+         geom_histogram(binwidth = 1, color = 'black', aes(fill = ..count..)) +
+         theme_pander() + 
+         coord_cartesian(xlim = c(2, 12)) +
+         scale_x_continuous(breaks = seq(2, 12, 1)) +
+         xlab('\nExperience in years (95% Quartile)') +
+         scale_fill_gradient("Count", low = "darkslategray1", high = "darkslategrey") +
+         guides(fill=FALSE)
+grid.arrange(hist1, hist2, ncol = 2, nrow = 1) 
+
+```
+
+## I was right ..:)
+
+Well this was really intersting. We can see that our assumption was overall correct because the as people gain experience in their jobs, lesser they opt for the loans. This may be due the fact that as people gain experinece their salary also increases and hence the lesser reason they find to opt for loans or the reason can be something different. We can also see in the right histogram of 95% quartile, most people opt for loans when they have almost 2 years of experience. 
+
+Lets explore it even more let's see the correlation between number of month a person has expericence and the EstimatedEffectiveYield variable that we have explored earlier. The question that we want to explore - 
+DOES LENDERS ASK FOR LESS INTEREST FORM THE BORROWERS WHO ARE MORE EXPERIENCED? This can be true because people with more job experience should have more potential to replay their loan better because they have higher paying jobs and hence their ProsperScore would be higher. And as we have seen that borrowers with better prosper score pay lesser to the lenders and lenders somehow prefer them.
+
+```{r}
+ggplot(aes(y = EmploymentStatusDuration / 12, x = EstimatedEffectiveYield, 
+           color = ProsperScore), 
+       data = subset(loanData, !is.na(loanData$ProsperScore))) +
+    geom_point(na.rm = T, position = 'jitter', alpha = 1 / 6, shape = 1) +
+    scale_color_brewer(type = 'div', palette = 'Spectral', direction = 1,
+                       guide = guide_legend(title = 'ProsperScore', reverse = T,
+                                            override.aes = list(alpha = 1, size = 2))) +
+    coord_cartesian(xlim = c(0.0, 0.3)) +
+    xlab('Actual yield interest of lenders') +
+    ylab('Boroower\'s Experience in Years') +
+    theme_pander()
+```
+
+As it seems from the scatter plot that the pattern seems to have no correlation. It means our assumption was not correct. Borrowers with better **EmploymentStatusDuration** don't seem to get any special relaxation from lenders in terms of interest each month. This can be further confirmed by checking the _Perarson's correlation Coefficient_. We see that the correlation coefficient is almost 0 (-0.0233).
+
+```{r}
+with(subset(loanData, !is.null(EmploymentStatusDuration) & 
+                !is.null(EstimatedEffectiveYield)), 
+     cor.test(EmploymentStatusDuration / 12, EstimatedEffectiveYield))
+```
+
+This also says that even though the true correlation is not ture and alternative hypothesis is accepted, their is some **serious statistical evidence of significance**. But if we look into the CI, it is within the range of -0.03 to -0.016 which is very small. Good R value is said a value < -0.3 or value > 0.3. This value is definitely not that large. Judging from the context atlest it is not. So we can say that there is **no practical significance.** Hence we can not tell with any confirmation that More Exprerienced Lenders end up paying Less/More interest to the Lenders.
+
+## How people loan for their Homes ?
+
+Here we are going to explore the people for two category. 
+
+    1. First those who are opting for loan to rennovation of home when they have a house.
+    2. Second those who opt for home loans even though they don't have house.
+
+
+```{r}
+home.loans <- loanData %>%
+    filter(ListingCategory..numeric. == 2, 
+           ProsperRating..Alpha. != "", 
+           IsBorrowerHomeowner != "") %>%
+    group_by(IsBorrowerHomeowner, ProsperRating..Alpha.) %>%
+    summarise(n = n()) %>%
+    mutate(freq = round(n / sum(n) * 100, 2))
+levels(home.loans$IsBorrowerHomeowner) <- c('No Home', 'Has Home')
+home.loans$ProsperRating..Alpha. <- factor(home.loans$ProsperRating..Alpha., ordered = T,
+                                           levels = c('AA', 'A', 'B', 'C', 'D', 'E', 'HR'))
+home.loans <- arrange(home.loans, ProsperRating..Alpha.)
+```
+
+**Now let's plot the data**
+
+```{r}
+ggplot(aes(x = ProsperRating..Alpha., y = freq, 
+           fill = IsBorrowerHomeowner), data = home.loans) +
+    geom_bar(stat = 'identity', position="dodge", color = 'white') +
+    theme_hc() +
+    scale_fill_fivethirtyeight() +
+    xlab('Prosper Ratings for borrowers') +
+    ylab('% of borrowers')
+```
+
+## Are Investors partial to Borrowers with better rating ??
+
+Here we visualizing an interesting trend. We are seeing for people with ProsperRating of _AA, A & B_, number of people opted for loan mentioning the reason for laon as **Home Improvement** but still has no home is more than the people who has home and opted for loan for Home Improvement and truly a home owner. But for people with poor rating, the trend in opposite and expected also. People who don't have any house should not get any loan mentioning the loan reason of House Improvement. These whole thing shows not only lenders give much preference to Rating over Verification and KYC (Know Your Customer) but this also shows irrespective of rating of borrowers, lenders dont care much about laon reason as a whole. The following code proves it even more. We can see that there are not a single borrowers who mentioned their loan purpose to be Home Improvement when they didn't have their own house and their loan was not approved. That's a strong evidence to show that investors don't care much about how much borrowers fudge or fake their loan purpose.
+
+```{r}
+a <- loanData %>%
+    filter(ListingCategory..numeric. == 2, LoanStatus == 'Cancelled')
+print.numeric_version(dim(a)[0])
+```
+## What's up with the people having dubious income sources ?
+
+```{r}
+dubious.borrowers <- loanData %>%
+    filter(ListingCategory..numeric. == 7, 
+           Occupation == 'Other', 
+           EmploymentStatus == 'Other',
+           IncomeVerifiable == 'False') %>%
+    group_by(ProsperRating..Alpha.) %>%
+    summarise(n = n()) %>%
+    mutate(freq = round(n / sum(n) * 100, 2))
+dubious.borrowers$ProsperRating..Alpha. <- ordered(dubious.borrowers$ProsperRating..Alpha., 
+                                                    levels = c('AA', 'A', 'B', 'C', 'D', 'E', 'HR'))
+dubious.borrowers <- arrange(dubious.borrowers, ProsperRating..Alpha.)
+```
+
+```{r}
+ggplot(aes(x = ProsperRating..Alpha., y = freq, fill = freq), 
+       data = dubious.borrowers) +
+    geom_bar(stat = 'identity', position="dodge") + 
+    theme_pander() +
+    scale_fill_continuous(low = 'deepskyblue1', high = 'dodgerblue4') +
+    guides(fill=FALSE) +
+    xlab('\nProsper rating for borrowers') +
+    ylab('% of borrowers') +
+    geom_text(aes(label = sprintf("%2.1f%%", round(freq, 2))), 
+              color="dodgerblue4", size = 5.5, nudge_y = 1, 
+              fontface = 'bold', family = 'Arial Black',
+              nudge_x = 0.06) +
+    theme(axis.text.x = element_text(face = 'bold.italic', colour = 'dodgerblue4', size = 15),
+          axis.text.y=element_blank(),
+          axis.title.x = element_text(face = 'bold', colour = 'dodgerblue4', size = 16),
+          axis.title.y = element_text(face = 'bold', colour = 'dodgerblue4', size = 16))
+    
+```
+
+## Prosper rating system seems legit !!
+
+Although we can't see any specific pattern among the dubious borrowers but we can see one thing very well. Overall borrowers with better ratings tends to be less dubious than borrowers with poor ratings. One more interesting thing is that the above barchart does not inlude borrowers with _AA_ rating. It means that the best borrowers are really best and the prosper rating really works.
+
+## Are Lenders greedy ?
+
+I always wanted to do this. But from this dataset we can answer this question a lot of way. One of the way is to check if the lenders asked for money if the borrowers income was high. Let's see if the correlation is substantial.
+
+```{r, fig.height=2.5, fig.width=7}
+base <- ggplot(aes(y = StatedMonthlyIncome, x = MonthlyLoanPayment), 
+       data = subset(loanData, 
+                         StatedMonthlyIncome != 0.0 & 
+                         MonthlyLoanPayment != 0.0 & 
+                         ProsperRating..Alpha. != "")) +
+    geom_jitter(color = 'black', fill = '#F79420', shape = 21) +
+    coord_cartesian(ylim = c(100, 30000), xlim = c(10, 1000)) +
+    scale_y_continuous(trans = log10_trans(), breaks = c(100, 1000, 10000, 20000, 30000)) +
+    scale_x_continuous(trans = log10_trans()) +
+    theme_pander()
+scatter1 <- base + geom_smooth(span = 0.3, method = 'lm', formula = y ~ splines::bs(x, 3))
+scatter2 <- base + geom_smooth(span = 0.3, method = 'lm')
+grid.arrange(scatter1, scatter2, nrow = 1, ncol = 2)
+```
