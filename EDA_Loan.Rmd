@@ -2,12 +2,12 @@
 title: "Prosper Loan Data Analysis"
 author: "Mayukh Sarkar"
 output:
-  pdf_document:
-    highlight: tango
-  html_notebook: default
   prettydoc::html_pretty:
     highlight: vignette
     theme: cayman
+  pdf_document:
+    highlight: tango
+  html_notebook: default
 header-includes: \usepackage{booktabs}
 ---
 
@@ -25,6 +25,7 @@ suppressMessages(library(Kmisc))
 suppressMessages(library(xtable))
 suppressMessages(library(knitr))
 suppressMessages(library(DT))
+suppressMessages(library(scales))
 ```
 
 ## Loading the dataset
@@ -442,4 +443,24 @@ ggplot(aes(x = ProsperRating..Alpha., y = freq, fill = freq),
 
 ## Prosper rating system seems legit !!
 
-Although we can't see any specific pattern among the dubious borrowers but we can see one thing very well. Overall borrowers with better ratings tends to be less dubious than borrowers with poor ratings. One more interesting thing is that the above barchart does not inlude borrowers with _AA_ rating. It means that the best borrowers are really best and the prosper rating really works. 
+Although we can't see any specific pattern among the dubious borrowers but we can see one thing very well. Overall borrowers with better ratings tends to be less dubious than borrowers with poor ratings. One more interesting thing is that the above barchart does not inlude borrowers with _AA_ rating. It means that the best borrowers are really best and the prosper rating really works.
+
+## Are Lenders greedy ?
+
+I always wanted to do this. But from this dataset we can answer this question a lot of way. One of the way is to check if the lenders asked for money if the borrowers income was high. Let's see if the correlation is substantial.
+
+```{r, fig.height=2.5, fig.width=7}
+base <- ggplot(aes(y = StatedMonthlyIncome, x = MonthlyLoanPayment), 
+       data = subset(loanData, 
+                         StatedMonthlyIncome != 0.0 & 
+                         MonthlyLoanPayment != 0.0 & 
+                         ProsperRating..Alpha. != "")) +
+    geom_jitter(color = 'black', fill = '#F79420', shape = 21) +
+    coord_cartesian(ylim = c(100, 30000), xlim = c(10, 1000)) +
+    scale_y_continuous(trans = log10_trans(), breaks = c(100, 1000, 10000, 20000, 30000)) +
+    scale_x_continuous(trans = log10_trans()) +
+    theme_pander()
+scatter1 <- base + geom_smooth(span = 0.3, method = 'lm', formula = y ~ splines::bs(x, 3))
+scatter2 <- base + geom_smooth(span = 0.3, method = 'lm')
+grid.arrange(scatter1, scatter2, nrow = 1, ncol = 2)
+```
