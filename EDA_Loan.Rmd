@@ -5,6 +5,7 @@ output:
   prettydoc::html_pretty:
     highlight: vignette
     theme: cayman
+    keep_md: yes
   pdf_document:
     highlight: tango
   html_notebook: default
@@ -226,68 +227,68 @@ other.borrowers <- loanData %>%
 ```
 ```{r echo=FALSE}
 ######### This is for knitr in HTML ############
-# datatable(other.borrowers,
-#           colnames = c('Employment Status' = 'EmploymentStatus', 'Occupation' = 'Occupation', 'Total' = 'n'),
-#           class = 'stripe',
-#           rownames = FALSE,
-#           filter = 'top',
-#           options = list(
-#               pageLength = 5,
-#               autoWidth = TRUE,
-#               columnDefs = list(list(targets = c(1, 2), searchable = FALSE))
-#               ))
+datatable(other.borrowers,
+          colnames = c('Employment Status' = 'EmploymentStatus', 'Occupation' = 'Occupation', 'Total' = 'n'),
+          class = 'stripe',
+          rownames = FALSE,
+          filter = 'top',
+          options = list(
+              pageLength = 5,
+              autoWidth = TRUE,
+              columnDefs = list(list(targets = c(1, 2), searchable = FALSE))
+              ))
 ```
 ```{r results='asis', echo=FALSE}
 ######## This is for for knitr in PDF  #########
-employed <- other.borrowers %>%
-    filter(EmploymentStatus == 'Employed') %>%
-    dplyr::select(-EmploymentStatus)
-full.time <- other.borrowers %>%
-    filter(EmploymentStatus == 'Full-time') %>%
-    dplyr::select(-EmploymentStatus)
-part.time <- other.borrowers %>%
-    filter(EmploymentStatus == 'Part-time') %>%
-    dplyr::select(-EmploymentStatus)
-self.employed <- other.borrowers %>%
-    filter(EmploymentStatus == 'Self-employed') %>%
-    dplyr::select(-EmploymentStatus)
-others <- other.borrowers %>%
-    filter(EmploymentStatus == 'Retired' | EmploymentStatus == 'Other')
-
-t1 <- kable(employed, format = "latex", booktabs = TRUE)
-t2 <- kable(full.time, format = "latex", booktabs = TRUE)
-t3 <- kable(part.time, format = "latex", booktabs = TRUE)
-t4 <- kable(self.employed, format = "latex", booktabs = TRUE)
-t5 <- kable(others, format = "latex", booktabs = TRUE)
-cat(c("\\begin{table}[!htb]
-    \\begin{minipage}{.5\\linewidth}
-      \\caption{ Employed }
-      \\centering",
-        t1,
-    "\\end{minipage}%
-    \\begin{minipage}{.5\\linewidth}
-      \\centering
-        \\caption{ Full-time }",
-        t2,
-    "\\end{minipage}
-    \\begin{minipage}{.5\\linewidth}
-      \\centering
-        \\caption{ Part-time }",
-        t3,
-    "\\end{minipage}%
-    \\begin{minipage}{.5\\linewidth}
-      \\centering
-        \\caption{ Self-employed }",
-        t4,
-    "\\end{minipage}
-    \\centering
-    \\begin{minipage}{.5\\linewidth}
-      \\centering
-        \\caption{ Others }",
-        t5,
-    "\\end{minipage}
-\\end{table}"
-))
+# employed <- other.borrowers %>%
+#     filter(EmploymentStatus == 'Employed') %>%
+#     dplyr::select(-EmploymentStatus)
+# full.time <- other.borrowers %>%
+#     filter(EmploymentStatus == 'Full-time') %>%
+#     dplyr::select(-EmploymentStatus)
+# part.time <- other.borrowers %>%
+#     filter(EmploymentStatus == 'Part-time') %>%
+#     dplyr::select(-EmploymentStatus)
+# self.employed <- other.borrowers %>%
+#     filter(EmploymentStatus == 'Self-employed') %>%
+#     dplyr::select(-EmploymentStatus)
+# others <- other.borrowers %>%
+#     filter(EmploymentStatus == 'Retired' | EmploymentStatus == 'Other')
+# 
+# t1 <- kable(employed, format = "latex", booktabs = TRUE)
+# t2 <- kable(full.time, format = "latex", booktabs = TRUE)
+# t3 <- kable(part.time, format = "latex", booktabs = TRUE)
+# t4 <- kable(self.employed, format = "latex", booktabs = TRUE)
+# t5 <- kable(others, format = "latex", booktabs = TRUE)
+# cat(c("\\begin{table}[!htb]
+#     \\begin{minipage}{.5\\linewidth}
+#       \\caption{ Employed }
+#       \\centering",
+#         t1,
+#     "\\end{minipage}%
+#     \\begin{minipage}{.5\\linewidth}
+#       \\centering
+#         \\caption{ Full-time }",
+#         t2,
+#     "\\end{minipage}
+#     \\begin{minipage}{.5\\linewidth}
+#       \\centering
+#         \\caption{ Part-time }",
+#         t3,
+#     "\\end{minipage}%
+#     \\begin{minipage}{.5\\linewidth}
+#       \\centering
+#         \\caption{ Self-employed }",
+#         t4,
+#     "\\end{minipage}
+#     \\centering
+#     \\begin{minipage}{.5\\linewidth}
+#       \\centering
+#         \\caption{ Others }",
+#         t5,
+#     "\\end{minipage}
+# \\end{table}"
+# ))
 ```
 
 We can see some really strange things happening here. In fact there are so many strange things that I have to list them down
@@ -449,18 +450,39 @@ Although we can't see any specific pattern among the dubious borrowers but we ca
 
 I always wanted to do this. But from this dataset we can answer this question a lot of way. One of the way is to check if the lenders asked for money if the borrowers income was high. Let's see if the correlation is substantial.
 
-```{r, fig.height=2.5, fig.width=7}
-base <- ggplot(aes(y = StatedMonthlyIncome, x = MonthlyLoanPayment), 
-       data = subset(loanData, 
-                         StatedMonthlyIncome != 0.0 & 
-                         MonthlyLoanPayment != 0.0 & 
-                         ProsperRating..Alpha. != "")) +
+```{r, fig.height=4, fig.width=12}
+base <- loanData %>%
+    filter(StatedMonthlyIncome != 0.0, MonthlyLoanPayment != 0.0, ProsperRating..Alpha. != "") %>%
+    ggplot(aes(y = StatedMonthlyIncome, x = MonthlyLoanPayment)) +
     geom_jitter(color = 'black', fill = '#F79420', shape = 21) +
     coord_cartesian(ylim = c(100, 30000), xlim = c(10, 1000)) +
     scale_y_continuous(trans = log10_trans(), breaks = c(100, 1000, 10000, 20000, 30000)) +
-    scale_x_continuous(trans = log10_trans()) +
+    scale_x_continuous(trans = log10_trans(), breaks = c(10, 50, 100, 200, 500, 700, 1000)) +
     theme_pander()
-scatter1 <- base + geom_smooth(span = 0.3, method = 'lm', formula = y ~ splines::bs(x, 3))
-scatter2 <- base + geom_smooth(span = 0.3, method = 'lm')
+scatter1 <- base + geom_smooth(span = 0.3, method = 'lm') + 
+    theme(plot.margin=unit(c(0, 1, 0, 0), "cm")) + xlab('\nAmount paid/month for loan')
+scatter2 <- base + geom_smooth(span = 0.3, method = 'lm', formula = y ~ splines::bs(x, 3)) + 
+                                    theme(axis.title.y=element_blank(),
+                                          axis.text.y=element_blank(),
+                                          axis.ticks.y=element_blank()) +
+    xlab('\nAmount paid/month for loan')
 grid.arrange(scatter1, scatter2, nrow = 1, ncol = 2)
 ```
+
+Here I am trying to see the relationship of _MonthlyLoanPayment_ with _StatedMonthlyIncome._ We can see from the above statterplot that most of the _MonthlyLoanPayment_ is distribued from 10 to 1000 and the _StatedMonthlyIncome_ is distributed from 100 to 30000. Both the scales are transformed in log scale and we can clearly observe two things, namely,
+    
+    1. There is defineite a strong positive correlation between monthly income and monthly loan amount.
+    2. Cubic relationship seems a better fit that simple linear model.
+
+## Are we sure that they are greedy ?
+
+Now we can see that there was definitely a strong correlation between the two variables but are we sure? Let's find the **Correlation Coefficient** to analyse it more.
+
+```{r}
+# with(subset(loanData, MonthlyLoanPayment <= 1000, StatedMonthlyIncome < 30000),
+#      cor.test(MonthlyLoanPayment, StatedMonthlyIncome, method = "pearson"))
+with(loanData, cor.test(MonthlyLoanPayment, StatedMonthlyIncome, method = "pearson"))
+
+```
+
+Well we can't really say that there is a strong correlation looking at the value of R which is almost 0.2. Usually it is said to be of high statistical importance if it is more than 0.3 or less than -0.3. But we can see that the value is still accpeptable with somewhat positive correlation with the population Conficence Interval being more than 0. The strong t-statistics of 67.76 and small p-value shows that the 
