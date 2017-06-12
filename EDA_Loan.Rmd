@@ -14,6 +14,8 @@ header-includes: \usepackage{booktabs}
 
 ## Loading the packages
 ```{r}
+# devtools::install_github("ndphillips/yarrr")
+suppressMessages(library(devtools))
 suppressMessages(library(ggplot2))
 suppressMessages(library(ggthemes))
 suppressMessages(library(dplyr))
@@ -28,6 +30,7 @@ suppressMessages(library(knitr))
 suppressMessages(library(DT))
 suppressMessages(library(scales))
 suppressMessages(library(plotrix))
+suppressMessages(library("yarrr"))
 ```
 
 ## Loading the dataset
@@ -231,8 +234,8 @@ other.borrowers <- loanData %>%
 ```{r echo=FALSE}
 ######### This is for knitr in HTML ############
 # datatable(other.borrowers,
-#           colnames = c('Employment Status' = 'EmploymentStatus', 
-#                        'Occupation' = 'Occupation', 
+#           colnames = c('Employment Status' = 'EmploymentStatus',
+#                        'Occupation' = 'Occupation',
 #                        'Total' = 'n'),
 #           class = 'stripe',
 #           rownames = FALSE,
@@ -528,7 +531,7 @@ recommend <- rec %>%
     group_by(recrange) %>%
     summarise(total = round(sum(freq), 2))
 k <- recommend[order(recommend$total), ]
-pie3D(sort(recommend$total), labels = sprintf("%s\n(%s%%)", k$recrange, sort(recommend$total)), 
+plotrix::pie3D(sort(recommend$total), labels = sprintf("%s\n(%s%%)", k$recrange, sort(recommend$total)), 
       col=brewer.pal(5, "RdPu"), main = "Monthly Loan for differnt recommendations" ,
       theta = pi / 3, labelcex = 0.8)
 ```
@@ -538,36 +541,154 @@ As we can see that people with _Above 20_ recommendations has the highest number
 
 ## Let's predict the Monthly Loan Payment
 
-There are multiple number of models that we can create with different number of input or independent variables. Let's try to create a linear model and see how we can create a better model.
+There are multiple number of models that we can create with different number of input or independent variables. Let's try to create a linear model and see how we can improve it.
 
 ```{r}
+# Selecting columns that we require
 model <- loanData %>%
     dplyr::select(MonthlyLoanPayment, 
-                  LoanOriginalAmount, 
-                  ProsperPrincipalBorrowed,
+                  LoanOriginalAmount,
                   DebtToIncomeRatio,
-                  IsBorrowerHomeowner,
-                  ProsperRating..numeric.) %>%
+                  ProsperRating..numeric.,
+                  Term, 
+                  LoanOriginationQuarter) %>%
     filter(!is.na(MonthlyLoanPayment), !is.na(LoanOriginalAmount),
            MonthlyLoanPayment != 0.0, LoanOriginalAmount != 0.0, 
            MonthlyLoanPayment != "", LoanOriginalAmount != "", 
-           !is.na(ProsperPrincipalBorrowed), ProsperPrincipalBorrowed != "",
            !is.na(DebtToIncomeRatio), DebtToIncomeRatio != "",
            !is.na(ProsperRating..numeric.))
 
-fit1 <- lm(MonthlyLoanPayment ~ LoanOriginalAmount + 
-               ProsperPrincipalBorrowed + DebtToIncomeRatio +
-               IsBorrowerHomeowner + ProsperRating..numeric., 
-           data = model)
+# Creating the first Linear Model
+
+fit1 <- lm(MonthlyLoanPayment ~ LoanOriginalAmount, data = model)
+
+# Predict from the model
 model$predicted <- predict(fit1)
+
+# Calculate the residuals for accuracy
 model$residuals <- residuals(fit1)
-summary(fit1)
+
+# Visualize how accurate the model (fit1)
 
 ggplot(data = model, aes(x = LoanOriginalAmount, y = MonthlyLoanPayment)) +
     geom_segment(aes(xend = LoanOriginalAmount , yend = predicted), alpha = 0.3) +
-    theme_pander() + 
+    theme_pander() +
     geom_point(shape = 21, fill = 'violet', size = 1, alpha = 0.4) +
     geom_point(aes(y = predicted), shape = 4)
 ```
 
+```{r}
+summary(fit1)
+```
 
+_LoanOriginalAmount_ should be the most important factor to decide what would be the _MonthlyLoanPayment_. As we can see that the correlation has very good _Adjusted R-squared_ value of 0.845 or almost 85%. The _Residual Standard Error_ is however quite high of almost75 which indicates the average performace of the linear model. We can visualise how the residuals are spread from the above plot. Their distribution is quite high. So the bigger question is that can we improve this model. Improving the model would ensure the following things
+    
+    1. Higher Adjusted R-squared value
+    2. Lower Residual Standard Error
+    3. Less variation/ Less dispersed residual graph
+    
+The key to improve any model liner/non-linear is to increase the number of independent variables. The choice of independent variable should be very logical. We should not include the variable which are dependent on the predicting variable. The independent variables should be truly independent. Here are the following variables that are choosen to improve the model. 
+    
+    1. LoanOriginalAmount: This should be the most important one 
+    because how much the borrower has to pay each month 
+    should be dependent on the total amount that is loaned
+    
+    2. DebtToIncomeRatio: This is important because lenders may 
+    ask more money each month who has a record of high DebtToIncomeRatio 
+    because they are considered borrowers with poor prospect and 
+    lenders might charge them more if giving lonas
+    
+    3. ProsperRating..numeric.: This is obvious because the we have shown 
+    already that lenders trust the prosper rating a lot over anything else 
+    and hence borrowers with poor ratings should pay more each 
+    month as compared to better ratings.
+    
+    4. Term: Term decides how long the borrower is opting for the loan 
+    and hence longer the Term shorter should be monthly payment.
+    
+    5. LoanOriginationQuarter: Lenders may ask for different monthly loan payment 
+    on different time of the year because of dynamic interest rate 
+    and changing macro economic factors on different time of the year.
+
+```{r}
+# Selecting columns that we require
+model <- loanData %>%
+    dplyr::select(MonthlyLoanPayment, 
+                  LoanOriginalAmount,
+                  DebtToIncomeRatio,
+                  ProsperRating..numeric.,
+                  Term, 
+                  LoanOriginationQuarter) %>%
+    filter(!is.na(MonthlyLoanPayment), !is.na(LoanOriginalAmount),
+           MonthlyLoanPayment != 0.0, LoanOriginalAmount != 0.0, 
+           MonthlyLoanPayment != "", LoanOriginalAmount != "", 
+           !is.na(DebtToIncomeRatio), DebtToIncomeRatio != "",
+           !is.na(ProsperRating..numeric.))
+
+# Creating the first Linear Model
+
+fit2 <- lm(MonthlyLoanPayment ~ LoanOriginalAmount + 
+               DebtToIncomeRatio + 
+               ProsperRating..numeric. +
+               Term + LoanOriginationQuarter,data = model)
+
+# Predict from the model
+model$predicted <- predict(fit2)
+
+# Calculate the residuals for accuracy
+model$residuals <- residuals(fit2)
+
+# Visualize how accurate the model (fit1)
+# summary(fit2)
+ggplot(data = model, aes(x = LoanOriginalAmount, y = MonthlyLoanPayment)) +
+    geom_segment(aes(xend = LoanOriginalAmount , yend = predicted), alpha = 0.3) +
+    theme_pander() +
+    geom_point(shape = 21, fill = 'violet', size = 1, alpha = 0.4) +
+    geom_point(aes(y = predicted), shape = 4)
+```
+
+We can see a lot less variation in the residual. Moreover when we summarize the fit2 for our improved model, we see that the value of _Residual standard error_ decreased a lot to almost 49 and _Adjusted R-squared_ incresed to almost 94%. This was a huge jump from our previous model. Hence we can say that fit2 predicts the monthly loan amount better than the fit1 model. This also proves that _LoanOriginalAmount_ is not only the deciding factor of _MonthlyLoanPayment_. There are other factors too that contribute to this. From the ```summary(fit2)```, we observe that the slope values like below
+
+    1. LoanOriginalAmount: 3.124e-02
+    2. DebtToIncomeRatio:  3.211e+00
+    3. ProsperRating..numeric.: -1.050e+01
+    4. Term: -4.993e+00 
+
+We can see that as we might have assumed, _LoanOriginalAmount_ & _DebtToIncomeRatio_ has positive solpe which is obvious because if these two increse, lenders ask for more money from the borrowers. On the other hand, _Term_ has a negative slope which is logical because if term increses, monthly loan payment should decrease.
+
+We can also see that the both maximum and minimum residual for our improved model is lesser than our previous model.
+
+## Some Final Thoughts
+
+Let's select 3 plots from what we have discussed and elaborate them bit further.
+
+### Term's distribution for each Prosper Category
+
+```{r, fig.height=5, fig.width=12}
+ggplot(subset(loanData, loanData$ProsperRating..Alpha. != ""), aes(x = Term / 12)) + 
+    geom_histogram(binwidth = 1, aes(fill = ..count..)) + 
+    scale_x_continuous(breaks = seq(1, 5, 2)) +
+    facet_grid(IsBorrowerHomeowner ~ ProsperRating..Alpha.) +
+    guides(fill=FALSE) +
+    theme_light() +
+    scale_fill_continuous_tableau(palette = "Green", space = "Lab")
+```
+
+Description for plot 1
+
+### EstimatedEffectiveYield variation on Employment type
+
+```{r, fig.height=7, fig.width=12}
+loanData$ProsperScore <- factor(loanData$ProsperScore)
+ggplot(aes(x = ProsperScore, y = EstimatedEffectiveYield, fill=ProsperScore), 
+       data = subset(loanData, !is.na(loanData$ProsperScore) & 
+                         !is.na(loanData$EstimatedEffectiveYield))) +
+    geom_violin(trim = F, scale = "width") +
+    stat_summary(fun.y=median, geom="point", size=2, color="black") +
+    scale_fill_manual(values=colorRampPalette(c("pink", "lightgreen"))(11)) + 
+    theme_light() +
+    xlab('\nScore for Risk Factor') +
+    ylab('Effective yeild of Lenders') +
+    guides(fill = F) +
+    facet_wrap(~EmploymentStatus)
+```
