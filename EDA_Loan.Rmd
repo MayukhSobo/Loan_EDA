@@ -2,13 +2,13 @@
 title: "Prosper Loan Data Analysis"
 author: "Mayukh Sarkar"
 output:
-  prettydoc::html_pretty:
-    highlight: vignette
-    theme: cayman
-    keep_md: yes
   pdf_document:
     highlight: tango
   html_notebook: default
+  prettydoc::html_pretty:
+    highlight: vignette
+    keep_md: yes
+    theme: cayman
 header-includes: \usepackage{booktabs}
 ---
 
@@ -27,6 +27,7 @@ suppressMessages(library(xtable))
 suppressMessages(library(knitr))
 suppressMessages(library(DT))
 suppressMessages(library(scales))
+suppressMessages(library(plotrix))
 ```
 
 ## Loading the dataset
@@ -212,6 +213,7 @@ ggplot(aes(x = reorder(category, freq), y = freq, fill = freq), data = loanData.
 It is really strange that people took loans to reimburse loans/debts and lenders also issued loans to these people. Isn't is a bad idea to take laons to pay for loans? Aren't we falling into a vicious cycle? We can also see that Home Inprovement is above Medical which may mean well insured population or negligence toward health. The other section with more than 10% of the loans would remain unknown. Why the loan reason would be unknown? Does it indicate any illegal reason to opt for loan! Let's explore this more. Let's see the Occupation and Employment status of Borrowers for all the loans falling into the _others_ section.
 
 ## Who are others??
+
 ```{r}
 other.borrowers <- loanData %>%
     filter(ListingCategory..numeric. == 7) %>%
@@ -225,70 +227,73 @@ other.borrowers <- loanData %>%
     top_n(n = 5, wt = n) %>%
     ungroup()
 ```
+
 ```{r echo=FALSE}
 ######### This is for knitr in HTML ############
-datatable(other.borrowers,
-          colnames = c('Employment Status' = 'EmploymentStatus', 'Occupation' = 'Occupation', 'Total' = 'n'),
-          class = 'stripe',
-          rownames = FALSE,
-          filter = 'top',
-          options = list(
-              pageLength = 5,
-              autoWidth = TRUE,
-              columnDefs = list(list(targets = c(1, 2), searchable = FALSE))
-              ))
+# datatable(other.borrowers,
+#           colnames = c('Employment Status' = 'EmploymentStatus', 
+#                        'Occupation' = 'Occupation', 
+#                        'Total' = 'n'),
+#           class = 'stripe',
+#           rownames = FALSE,
+#           filter = 'top',
+#           options = list(
+#               pageLength = 5,
+#               autoWidth = TRUE,
+#               columnDefs = list(list(targets = c(1, 2), searchable = FALSE))
+#               ))
 ```
 ```{r results='asis', echo=FALSE}
 ######## This is for for knitr in PDF  #########
-# employed <- other.borrowers %>%
-#     filter(EmploymentStatus == 'Employed') %>%
-#     dplyr::select(-EmploymentStatus)
-# full.time <- other.borrowers %>%
-#     filter(EmploymentStatus == 'Full-time') %>%
-#     dplyr::select(-EmploymentStatus)
-# part.time <- other.borrowers %>%
-#     filter(EmploymentStatus == 'Part-time') %>%
-#     dplyr::select(-EmploymentStatus)
-# self.employed <- other.borrowers %>%
-#     filter(EmploymentStatus == 'Self-employed') %>%
-#     dplyr::select(-EmploymentStatus)
-# others <- other.borrowers %>%
-#     filter(EmploymentStatus == 'Retired' | EmploymentStatus == 'Other')
-# 
-# t1 <- kable(employed, format = "latex", booktabs = TRUE)
-# t2 <- kable(full.time, format = "latex", booktabs = TRUE)
-# t3 <- kable(part.time, format = "latex", booktabs = TRUE)
-# t4 <- kable(self.employed, format = "latex", booktabs = TRUE)
-# t5 <- kable(others, format = "latex", booktabs = TRUE)
-# cat(c("\\begin{table}[!htb]
-#     \\begin{minipage}{.5\\linewidth}
-#       \\caption{ Employed }
-#       \\centering",
-#         t1,
-#     "\\end{minipage}%
-#     \\begin{minipage}{.5\\linewidth}
-#       \\centering
-#         \\caption{ Full-time }",
-#         t2,
-#     "\\end{minipage}
-#     \\begin{minipage}{.5\\linewidth}
-#       \\centering
-#         \\caption{ Part-time }",
-#         t3,
-#     "\\end{minipage}%
-#     \\begin{minipage}{.5\\linewidth}
-#       \\centering
-#         \\caption{ Self-employed }",
-#         t4,
-#     "\\end{minipage}
-#     \\centering
-#     \\begin{minipage}{.5\\linewidth}
-#       \\centering
-#         \\caption{ Others }",
-#         t5,
-#     "\\end{minipage}
-# \\end{table}"
-# ))
+employed <- other.borrowers %>%
+    filter(EmploymentStatus == 'Employed') %>%
+    dplyr::select(-EmploymentStatus)
+full.time <- other.borrowers %>%
+    filter(EmploymentStatus == 'Full-time') %>%
+    dplyr::select(-EmploymentStatus)
+part.time <- other.borrowers %>%
+    filter(EmploymentStatus == 'Part-time') %>%
+    dplyr::select(-EmploymentStatus)
+self.employed <- other.borrowers %>%
+    filter(EmploymentStatus == 'Self-employed') %>%
+    dplyr::select(-EmploymentStatus)
+others <- other.borrowers %>%
+    filter(EmploymentStatus == 'Retired' | EmploymentStatus == 'Other')
+
+t1 <- kable(employed, format = "latex", booktabs = TRUE)
+t2 <- kable(full.time, format = "latex", booktabs = TRUE)
+t3 <- kable(part.time, format = "latex", booktabs = TRUE)
+t4 <- kable(self.employed, format = "latex", booktabs = TRUE)
+t5 <- kable(others, format = "latex", booktabs = TRUE)
+cat(c("\\begin{table}[!htb]
+    \\begin{minipage}{.5\\linewidth}
+      \\caption{ Employed }
+      \\centering",
+        t1,
+    "\\end{minipage}%
+    \\begin{minipage}{.5\\linewidth}
+      \\centering
+        \\caption{ Full-time }",
+        t2,
+    "\\end{minipage}
+    \\begin{minipage}{.5\\linewidth}
+      \\centering
+        \\caption{ Part-time }",
+        t3,
+    "\\end{minipage}%
+    \\begin{minipage}{.5\\linewidth}
+      \\centering
+        \\caption{ Self-employed }",
+        t4,
+    "\\end{minipage}
+    \\centering
+    \\begin{minipage}{.5\\linewidth}
+      \\centering
+        \\caption{ Others }",
+        t5,
+    "\\end{minipage}
+\\end{table}"
+))
 ```
 
 We can see some really strange things happening here. In fact there are so many strange things that I have to list them down
@@ -340,7 +345,8 @@ Lets explore it even more let's see the correlation between number of month a pe
 DOES LENDERS ASK FOR LESS INTEREST FORM THE BORROWERS WHO ARE MORE EXPERIENCED? This can be true because people with more job experience should have more potential to replay their loan better because they have higher paying jobs and hence their ProsperScore would be higher. And as we have seen that borrowers with better prosper score pay lesser to the lenders and lenders somehow prefer them.
 
 ```{r}
-ggplot(aes(y = EmploymentStatusDuration / 12, x = EstimatedEffectiveYield, 
+ggplot(aes(y = EmploymentStatusDuration / 12, 
+           x = EstimatedEffectiveYield, 
            color = ProsperScore), 
        data = subset(loanData, !is.na(loanData$ProsperScore))) +
     geom_point(na.rm = T, position = 'jitter', alpha = 1 / 6, shape = 1) +
@@ -380,8 +386,9 @@ home.loans <- loanData %>%
     summarise(n = n()) %>%
     mutate(freq = round(n / sum(n) * 100, 2))
 levels(home.loans$IsBorrowerHomeowner) <- c('No Home', 'Has Home')
-home.loans$ProsperRating..Alpha. <- factor(home.loans$ProsperRating..Alpha., ordered = T,
-                                           levels = c('AA', 'A', 'B', 'C', 'D', 'E', 'HR'))
+home.loans$ProsperRating..Alpha. <- 
+    factor(home.loans$ProsperRating..Alpha., ordered = T,
+           levels = c('AA', 'A', 'B', 'C', 'D', 'E', 'HR'))
 home.loans <- arrange(home.loans, ProsperRating..Alpha.)
 ```
 
@@ -390,7 +397,8 @@ home.loans <- arrange(home.loans, ProsperRating..Alpha.)
 ```{r}
 ggplot(aes(x = ProsperRating..Alpha., y = freq, 
            fill = IsBorrowerHomeowner), data = home.loans) +
-    geom_bar(stat = 'identity', position="dodge", color = 'white') +
+    geom_bar(stat = 'identity', position="dodge",
+             color = 'white') +
     theme_hc() +
     scale_fill_fivethirtyeight() +
     xlab('Prosper Ratings for borrowers') +
@@ -403,7 +411,8 @@ Here we visualizing an interesting trend. We are seeing for people with ProsperR
 
 ```{r}
 a <- loanData %>%
-    filter(ListingCategory..numeric. == 2, LoanStatus == 'Cancelled')
+    filter(ListingCategory..numeric. == 2,
+           LoanStatus == 'Cancelled')
 print.numeric_version(dim(a)[0])
 ```
 ## What's up with the people having dubious income sources ?
@@ -417,8 +426,9 @@ dubious.borrowers <- loanData %>%
     group_by(ProsperRating..Alpha.) %>%
     summarise(n = n()) %>%
     mutate(freq = round(n / sum(n) * 100, 2))
-dubious.borrowers$ProsperRating..Alpha. <- ordered(dubious.borrowers$ProsperRating..Alpha., 
-                                                    levels = c('AA', 'A', 'B', 'C', 'D', 'E', 'HR'))
+dubious.borrowers$ProsperRating..Alpha. <- 
+    ordered(dubious.borrowers$ProsperRating..Alpha.,
+            levels = c('AA', 'A', 'B', 'C', 'D', 'E', 'HR'))
 dubious.borrowers <- arrange(dubious.borrowers, ProsperRating..Alpha.)
 ```
 
@@ -427,18 +437,22 @@ ggplot(aes(x = ProsperRating..Alpha., y = freq, fill = freq),
        data = dubious.borrowers) +
     geom_bar(stat = 'identity', position="dodge") + 
     theme_pander() +
-    scale_fill_continuous(low = 'deepskyblue1', high = 'dodgerblue4') +
+    scale_fill_continuous(low = 'deepskyblue1', 
+                          high = 'dodgerblue4') +
     guides(fill=FALSE) +
     xlab('\nProsper rating for borrowers') +
     ylab('% of borrowers') +
     geom_text(aes(label = sprintf("%2.1f%%", round(freq, 2))), 
               color="dodgerblue4", size = 5.5, nudge_y = 1, 
-              fontface = 'bold', family = 'Arial Black',
-              nudge_x = 0.06) +
+              fontface = 'bold', nudge_x = 0.06) +
     theme(axis.text.x = element_text(face = 'bold.italic', colour = 'dodgerblue4', size = 15),
           axis.text.y=element_blank(),
-          axis.title.x = element_text(face = 'bold', colour = 'dodgerblue4', size = 16),
-          axis.title.y = element_text(face = 'bold', colour = 'dodgerblue4', size = 16))
+          axis.title.x = element_text(face = 'bold', 
+                                      colour = 'dodgerblue4', 
+                                      size = 16),
+          axis.title.y = element_text(face = 'bold', 
+                                      colour = 'dodgerblue4', 
+                                      size = 16))
     
 ```
 
@@ -452,12 +466,18 @@ I always wanted to do this. But from this dataset we can answer this question a 
 
 ```{r, fig.height=4, fig.width=12}
 base <- loanData %>%
-    filter(StatedMonthlyIncome != 0.0, MonthlyLoanPayment != 0.0, ProsperRating..Alpha. != "") %>%
-    ggplot(aes(y = StatedMonthlyIncome, x = MonthlyLoanPayment)) +
-    geom_jitter(color = 'black', fill = '#F79420', shape = 21) +
+    filter(StatedMonthlyIncome != 0.0, 
+           MonthlyLoanPayment != 0.0, 
+           ProsperRating..Alpha. != "") %>%
+    ggplot(aes(y = StatedMonthlyIncome, 
+               x = MonthlyLoanPayment)) +
+    geom_jitter(color = 'black', 
+                fill = '#F79420', shape = 21) +
     coord_cartesian(ylim = c(100, 30000), xlim = c(10, 1000)) +
-    scale_y_continuous(trans = log10_trans(), breaks = c(100, 1000, 10000, 20000, 30000)) +
-    scale_x_continuous(trans = log10_trans(), breaks = c(10, 50, 100, 200, 500, 700, 1000)) +
+    scale_y_continuous(trans = log10_trans(), 
+                       breaks = c(100, 1000, 10000, 20000, 30000)) +
+    scale_x_continuous(trans = log10_trans(), 
+                       breaks = c(10, 50, 100, 200, 500, 700, 1000)) +
     theme_pander()
 scatter1 <- base + geom_smooth(span = 0.3, method = 'lm') + 
     theme(plot.margin=unit(c(0, 1, 0, 0), "cm")) + xlab('\nAmount paid/month for loan')
@@ -469,7 +489,9 @@ scatter2 <- base + geom_smooth(span = 0.3, method = 'lm', formula = y ~ splines:
 grid.arrange(scatter1, scatter2, nrow = 1, ncol = 2)
 ```
 
+
 Here I am trying to see the relationship of _MonthlyLoanPayment_ with _StatedMonthlyIncome._ We can see from the above statterplot that most of the _MonthlyLoanPayment_ is distribued from 10 to 1000 and the _StatedMonthlyIncome_ is distributed from 100 to 30000. Both the scales are transformed in log scale and we can clearly observe two things, namely,
+  
     
     1. There is defineite a strong positive correlation between monthly income and monthly loan amount.
     2. Cubic relationship seems a better fit that simple linear model.
@@ -478,11 +500,74 @@ Here I am trying to see the relationship of _MonthlyLoanPayment_ with _StatedMon
 
 Now we can see that there was definitely a strong correlation between the two variables but are we sure? Let's find the **Correlation Coefficient** to analyse it more.
 
-```{r}
-# with(subset(loanData, MonthlyLoanPayment <= 1000, StatedMonthlyIncome < 30000),
-#      cor.test(MonthlyLoanPayment, StatedMonthlyIncome, method = "pearson"))
-with(loanData, cor.test(MonthlyLoanPayment, StatedMonthlyIncome, method = "pearson"))
 
+
+```{r}
+with(loanData, cor.test(MonthlyLoanPayment, StatedMonthlyIncome, method = "pearson"))
 ```
 
-Well we can't really say that there is a strong correlation looking at the value of R which is almost 0.2. Usually it is said to be of high statistical importance if it is more than 0.3 or less than -0.3. But we can see that the value is still accpeptable with somewhat positive correlation with the population Conficence Interval being more than 0. The strong t-statistics of 67.76 and small p-value shows that the 
+
+
+Well we can't really say that there is a strong correlation looking at the value of R which is almost 0.2. Usually it is said to be of high statistical importance if it is more than 0.3 or less than -0.3. But we can see that the value is still accpeptable with somewhat positive correlation with the population Conficence Interval being more than 0. The strong t-statistics of 67.76 and small p-value shows that the statistical significance of alternative hypothesis is very strong. But this can also be somewhat practical significance too, atleast to be included in a linear model.
+
+
+
+```{r}
+rec <- loanData %>%
+    group_by(Recommendations) %>%
+    summarise(n = n(), 
+              AvgLoan = median(MonthlyLoanPayment)) %>%
+    mutate(freq = AvgLoan / sum(AvgLoan) * 100)
+
+
+A <- cut(rec$Recommendations, breaks = c(-1, 5, 10, 15, 20, 40), 
+    labels= c("0 to 5", "6 to 10", "11 to 15", "16 to 20", "Above 20"))
+rec$recrange <- A
+
+recommend <- rec %>%
+    group_by(recrange) %>%
+    summarise(total = round(sum(freq), 2))
+k <- recommend[order(recommend$total), ]
+pie3D(sort(recommend$total), labels = sprintf("%s\n(%s%%)", k$recrange, sort(recommend$total)), 
+      col=brewer.pal(5, "RdPu"), main = "Monthly Loan for differnt recommendations" ,
+      theta = pi / 3, labelcex = 0.8)
+```
+
+As we can see that people with _Above 20_ recommendations has the highest number of _MonthlyLoanPayment_ percentage as compared to any other group. But this still can't assure us that people with higher recommendations pay more loan each month. This question was relevant because we want to find out IF PEOPLE WITH MORE RECOMMENDATION ARE POWERFUL AND RICH ENOUGH TO PAY MORE LOAN MONTHLY? The answer is we can't be really sure.
+
+
+## Let's predict the Monthly Loan Payment
+
+There are multiple number of models that we can create with different number of input or independent variables. Let's try to create a linear model and see how we can create a better model.
+
+```{r}
+model <- loanData %>%
+    dplyr::select(MonthlyLoanPayment, 
+                  LoanOriginalAmount, 
+                  ProsperPrincipalBorrowed,
+                  DebtToIncomeRatio,
+                  IsBorrowerHomeowner,
+                  ProsperRating..numeric.) %>%
+    filter(!is.na(MonthlyLoanPayment), !is.na(LoanOriginalAmount),
+           MonthlyLoanPayment != 0.0, LoanOriginalAmount != 0.0, 
+           MonthlyLoanPayment != "", LoanOriginalAmount != "", 
+           !is.na(ProsperPrincipalBorrowed), ProsperPrincipalBorrowed != "",
+           !is.na(DebtToIncomeRatio), DebtToIncomeRatio != "",
+           !is.na(ProsperRating..numeric.))
+
+fit1 <- lm(MonthlyLoanPayment ~ LoanOriginalAmount + 
+               ProsperPrincipalBorrowed + DebtToIncomeRatio +
+               IsBorrowerHomeowner + ProsperRating..numeric., 
+           data = model)
+model$predicted <- predict(fit1)
+model$residuals <- residuals(fit1)
+summary(fit1)
+
+ggplot(data = model, aes(x = LoanOriginalAmount, y = MonthlyLoanPayment)) +
+    geom_segment(aes(xend = LoanOriginalAmount , yend = predicted), alpha = 0.3) +
+    theme_pander() + 
+    geom_point(shape = 21, fill = 'violet', size = 1, alpha = 0.4) +
+    geom_point(aes(y = predicted), shape = 4)
+```
+
+
