@@ -32,8 +32,8 @@ The data is available in the CSV format and can be downloaded from
 ## Exported Report
 - **Simplified HTML:** [Download](https://raw.githubusercontent.com/MayukhSobo/Loan_EDA/master/EDA_Loan.nb.html)
 - **Curated HTML:** [Download](https://github.com/MayukhSobo/Loan_EDA/raw/master/EDA_Loan.html)
-- **Hosted Curated HTML:** [Download](http://rpubs.com/mayukhsobo/prosper_loan_data_analysis) *(Recommended)*
-- **Knitr Simplified PDF:** [Download](https://raw.githubusercontent.com/MayukhSobo/Loan_EDA/master/EDA_Loan.pdf)
+- **Hosted Curated HTML:** [Download](http://rpubs.com/mayukhsobo/prosper_loan_data_analysis)
+- **Knitr Simplified PDF:** [Download](https://raw.githubusercontent.com/MayukhSobo/Loan_EDA/master/EDA_Loan.pdf) *(Recommended)*
 - **MS Docx:** [Download](https://github.com/MayukhSobo/Loan_EDA/raw/master/EDA_Loan.docx)
 - **Markdown:**[Download](https://github.com/MayukhSobo/Loan_EDA/raw/master/EDA_Loan.md) (without plots)
 - **Hosted PDF :** (Coming Soon)
