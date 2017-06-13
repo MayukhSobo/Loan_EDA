@@ -209,6 +209,7 @@ ggplot(aes(x = reorder(category, freq), y = freq, fill = freq), data = loanData.
     ylab('Percentage') +
     xlab('Loan Categories') +
     theme(axis.text.y = element_text(face = 'bold.italic', colour = 'darkblue'))
+
 ```
 
 ## Loan for Loans !!
@@ -322,8 +323,9 @@ borrower.experience <- loanData %>%
 hist1 <- ggplot(aes(x = EmploymentStatusDuration / 12), data = borrower.experience) +
          geom_histogram(binwidth = 2, color = 'red', fill = 'deeppink', alpha = 1/2) +
          theme_pander() +
-         scale_x_continuous(breaks = seq(min(borrower.experience$EmploymentStatusDuration),
-                                        max(borrower.experience$EmploymentStatusDuration),
+         scale_x_continuous(breaks = 
+                                seq(min(borrower.experience$EmploymentStatusDuration),
+                                    max(borrower.experience$EmploymentStatusDuration),
                                         2)) +
          coord_cartesian(xlim = c(0, 41)) +
          xlab('\nTotal experience in years')
@@ -405,7 +407,10 @@ ggplot(aes(x = ProsperRating..Alpha., y = freq,
     theme_hc() +
     scale_fill_fivethirtyeight() +
     xlab('Prosper Ratings for borrowers') +
-    ylab('% of borrowers')
+    ylab('% of borrowers') +
+    ggtitle("Home Improvement for All", subtitle = "even if you dont have home") +
+    theme(plot.title = element_text(face = 'bold.italic', colour = 'red', size=20),
+          plot.subtitle = element_text(face = 'bold', colour = 'dodgerblue3', size=14))
 ```
 
 ## Are Investors partial to Borrowers with better rating ??
@@ -448,14 +453,19 @@ ggplot(aes(x = ProsperRating..Alpha., y = freq, fill = freq),
     geom_text(aes(label = sprintf("%2.1f%%", round(freq, 2))), 
               color="dodgerblue4", size = 5.5, nudge_y = 1, 
               fontface = 'bold', nudge_x = 0.06) +
-    theme(axis.text.x = element_text(face = 'bold.italic', colour = 'dodgerblue4', size = 15),
+    theme(axis.text.x = element_text(face = 'bold.italic', 
+                                     colour = 'dodgerblue4', 
+                                     size = 15),
           axis.text.y=element_blank(),
           axis.title.x = element_text(face = 'bold', 
                                       colour = 'dodgerblue4', 
                                       size = 16),
           axis.title.y = element_text(face = 'bold', 
                                       colour = 'dodgerblue4', 
-                                      size = 16))
+                                      size = 16),
+          plot.title = element_text(face = 'bold.italic', colour = 'deepskyblue1', size=18),
+          plot.subtitle = element_text(face = 'bold', colour = 'dodgerblue4', size=12)) +
+    ggtitle("Story of Dubious borrowers", subtitle = "by different borrower's category")
     
 ```
 
@@ -483,12 +493,17 @@ base <- loanData %>%
                        breaks = c(10, 50, 100, 200, 500, 700, 1000)) +
     theme_pander()
 scatter1 <- base + geom_smooth(span = 0.3, method = 'lm') + 
-    theme(plot.margin=unit(c(0, 1, 0, 0), "cm")) + xlab('\nAmount paid/month for loan')
-scatter2 <- base + geom_smooth(span = 0.3, method = 'lm', formula = y ~ splines::bs(x, 3)) + 
-                                    theme(axis.title.y=element_blank(),
-                                          axis.text.y=element_blank(),
-                                          axis.ticks.y=element_blank()) +
-    xlab('\nAmount paid/month for loan')
+    theme(plot.margin=unit(c(0, 1, 0, 0), "cm")) + 
+    xlab('\nAmount paid/month for loan') +
+    ggtitle("Monthly Income vs Monthly Loan (Linear fit)")
+scatter2 <- base + geom_smooth(span = 0.3, 
+                               method = 'lm', 
+                               formula = y ~ splines::bs(x, 3)) + 
+    theme(axis.title.y=element_blank(),
+          axis.text.y=element_blank(),
+          axis.ticks.y=element_blank()) +
+    xlab('\nAmount paid/month for loan') +
+    ggtitle("Monthly Income vs Monthly Loan (Cubic fit)")
 grid.arrange(scatter1, scatter2, nrow = 1, ncol = 2)
 ```
 
@@ -496,7 +511,9 @@ grid.arrange(scatter1, scatter2, nrow = 1, ncol = 2)
 Here I am trying to see the relationship of _MonthlyLoanPayment_ with _StatedMonthlyIncome._ We can see from the above statterplot that most of the _MonthlyLoanPayment_ is distribued from 10 to 1000 and the _StatedMonthlyIncome_ is distributed from 100 to 30000. Both the scales are transformed in log scale and we can clearly observe two things, namely,
   
     
-    1. There is defineite a strong positive correlation between monthly income and monthly loan amount.
+    1. There is defineite a strong positive correlation 
+    between monthly income and monthly loan amount.
+    
     2. Cubic relationship seems a better fit that simple linear model.
 
 ## Are we sure that they are greedy ?
@@ -531,8 +548,10 @@ recommend <- rec %>%
     group_by(recrange) %>%
     summarise(total = round(sum(freq), 2))
 k <- recommend[order(recommend$total), ]
-plotrix::pie3D(sort(recommend$total), labels = sprintf("%s\n(%s%%)", k$recrange, sort(recommend$total)), 
-      col=brewer.pal(5, "RdPu"), main = "Monthly Loan for differnt recommendations" ,
+plotrix::pie3D(sort(recommend$total), 
+               labels = sprintf("%s\n(%s%%)", k$recrange, sort(recommend$total)), 
+      col=brewer.pal(5, "RdPu"), 
+      main = "Monthly Loan for differnt recommendations",
       theta = pi / 3, labelcex = 0.8)
 ```
 
@@ -574,7 +593,8 @@ ggplot(data = model, aes(x = LoanOriginalAmount, y = MonthlyLoanPayment)) +
     geom_segment(aes(xend = LoanOriginalAmount , yend = predicted), alpha = 0.3) +
     theme_pander() +
     geom_point(shape = 21, fill = 'violet', size = 1, alpha = 0.4) +
-    geom_point(aes(y = predicted), shape = 4)
+    geom_point(aes(y = predicted), shape = 4) +
+    ggtitle("Residuals plot for initial model (fit1)")
 ```
 
 ```{r}
@@ -644,7 +664,8 @@ ggplot(data = model, aes(x = LoanOriginalAmount, y = MonthlyLoanPayment)) +
     geom_segment(aes(xend = LoanOriginalAmount , yend = predicted), alpha = 0.3) +
     theme_pander() +
     geom_point(shape = 21, fill = 'violet', size = 1, alpha = 0.4) +
-    geom_point(aes(y = predicted), shape = 4)
+    geom_point(aes(y = predicted), shape = 4) +
+    ggtitle("Residuals plot of improved model (fit2)")
 ```
 
 We can see a lot less variation in the residual. Moreover when we summarize the fit2 for our improved model, we see that the value of _Residual standard error_ decreased a lot to almost 49 and _Adjusted R-squared_ incresed to almost 94%. This was a huge jump from our previous model. Hence we can say that fit2 predicts the monthly loan amount better than the fit1 model. This also proves that _LoanOriginalAmount_ is not only the deciding factor of _MonthlyLoanPayment_. There are other factors too that contribute to this. From the ```summary(fit2)```, we observe that the slope values like below
@@ -668,13 +689,18 @@ Let's select 3 plots from what we have discussed and elaborate them bit further.
 ggplot(subset(loanData, loanData$ProsperRating..Alpha. != ""), aes(x = Term / 12)) + 
     geom_histogram(binwidth = 1, aes(fill = ..count..)) + 
     scale_x_continuous(breaks = seq(1, 5, 2)) +
-    facet_grid(IsBorrowerHomeowner ~ ProsperRating..Alpha.) +
+    facet_grid(IsBorrowerHomeowner ~ ordered(ProsperRating..Alpha.,
+            levels = c('AA', 'A', 'B', 'C', 'D', 'E', 'HR'))) +
     guides(fill=FALSE) +
     theme_light() +
-    scale_fill_continuous_tableau(palette = "Green", space = "Lab")
+    scale_fill_continuous_tableau(palette = "Green", space = "Lab") +
+    ggtitle("Histogram of terms for different borrower category", 
+            subtitle = "split by houseownership") +
+    theme(plot.title = element_text(face = 'bold', colour = 'darkgreen', size=22),
+          plot.subtitle = element_text(face = 'bold.italic', size = 10, colour = "#21b26f"))
 ```
 
-Description for plot 1
+As we can see the above mentioned plot is extension of the first plot of the histogram of different terms. Now it is split over serveral important variables. Firstly we are distributing it by each borrower category to see if there is any change in the pattern of loan terms for different type of borrowers. We can see along all the borrower types, 3 years is the most common borrowing year as we have already seen. We can see that people with _AA_ rank loan very less, while people of _C_ and _D_ category seems to loan most and all of their most poplular loan amount is 3 years. Moreover row-wise we split the plot in 2 sections namely, _True and False_ indcating Houseowner or not. We can see a lot more loan for houseowners with _AA_ and _A_ category while for others no houseowners seems to loan same or even more for low rating borrowers than houseowners. This may indicate that wheather a borrower would get more loan or not is dependent on the fact that they own their own house or not but only for high ranking borrowers. For low ranking borrowers, owning their own house doesn't affect much.
 
 ### EstimatedEffectiveYield variation on Employment type
 
@@ -682,7 +708,8 @@ Description for plot 1
 loanData$ProsperScore <- factor(loanData$ProsperScore)
 ggplot(aes(x = ProsperScore, y = EstimatedEffectiveYield, fill=ProsperScore), 
        data = subset(loanData, !is.na(loanData$ProsperScore) & 
-                         !is.na(loanData$EstimatedEffectiveYield))) +
+                         !is.na(loanData$EstimatedEffectiveYield) &
+                         loanData$EmploymentStatus != "" & loanData$EmploymentStatus != "Other")) +
     geom_violin(trim = F, scale = "width") +
     stat_summary(fun.y=median, geom="point", size=2, color="black") +
     scale_fill_manual(values=colorRampPalette(c("pink", "lightgreen"))(11)) + 
@@ -690,5 +717,53 @@ ggplot(aes(x = ProsperScore, y = EstimatedEffectiveYield, fill=ProsperScore),
     xlab('\nScore for Risk Factor') +
     ylab('Effective yeild of Lenders') +
     guides(fill = F) +
-    facet_wrap(~EmploymentStatus)
+    facet_wrap(~EmploymentStatus) +
+    ggtitle("Distribution of Effective Yield", 
+            subtitle = "split by major occupation of borrowers") +
+    theme(plot.title = element_text(face = 'bold', colour = '#db97a8', size=22),
+          plot.subtitle = element_text(face = 'bold.italic', size = 10, colour = "darkgreen"))
 ```
+
+EstimatedEffectiveYield is measusred here which is the extention of the 5th plot of distribution EstimatedEffectiveYield for all ProsperScores. We found that as prosper socre increses, lenders seemed to demand comparatively lesser than the borrowers with poor ProsperScore. Now we would see how this varies with the profession of the borrowers. We see _Not employed_ people tends to have very less variation along all the prosperscore ranges. This may be due to the fact that they are not employed and hence return form them is kept fixed. We see almost the same pattern in the _Self-employed_ people. We see on the other hand a lot of variation in _Full-time_ and _Retired_ category. Probably because there are scopes of different level of returns from them. _Self-employed_ is somehow moderate as it should be because of its limited return values from them while _Employed_ remained to be strange because if it's amibuity with _Full-time_ as discussed. Overall we see a lot of ups and downs for the lenders' return if the borrowers are retired or full time as compared to others.
+
+### Correlation of MonthlyIncome vs MonthlyLoanPayment
+
+```{r, fig.height=7, fig.width=14}
+base <- loanData %>%
+    filter(StatedMonthlyIncome != 0.0, 
+           MonthlyLoanPayment != 0.0, 
+           ProsperRating..Alpha. != "") %>%
+    ggplot(aes(y = StatedMonthlyIncome, 
+               x = MonthlyLoanPayment)) +
+    geom_jitter(color = 'black', shape = 21, alpha = 1/2) +
+    coord_cartesian(ylim = c(100, 30000), xlim = c(10, 1000)) +
+    scale_y_continuous(trans = log10_trans(), 
+                       breaks = c(100, 1000, 10000, 20000, 30000)) +
+    scale_x_continuous(trans = log10_trans(), 
+                       breaks = c(50, 100, 400, 1000))
+
+base + geom_smooth(span = 0.3, method = 'lm', formula = y ~ splines::bs(x, 3), 
+                   aes(linetype = IsBorrowerHomeowner, colour = IsBorrowerHomeowner)) + 
+                                    theme(axis.title.y=element_blank(),
+                                          axis.text.y=element_blank(),
+                                          axis.ticks.y=element_blank()) +
+    xlab('\nAmount paid/month for loan') +
+    aes(fill = factor(IsBorrowerHomeowner)) +
+    facet_grid(IncomeVerifiable ~ ordered(ProsperRating..Alpha.,
+            levels = c('AA', 'A', 'B', 'C', 'D', 'E', 'HR'))) +
+    theme_light() +
+    scale_fill_manual(values=c("#FFAA00", "#2BC5CC")) +
+    guides(fill = F) +
+    theme(legend.position="bottom", 
+          plot.title = element_text(face = 'bold', colour = '#2BC5CC', size=22),
+          plot.subtitle = element_text(face = 'bold.italic', size = 10, color = "orange")) +
+    ggtitle("Correlation between Monthly Loan and Monthly income", 
+            subtitle = "For differnt borrower class split by verifiable income and colored by Houseownership")
+
+```
+
+This plot talks about so much and it is hard to talk about all of these. The color is by houseownership while the rows are split by verifiable income or not and columns are as usual borrowers' rating. We are trying to find the correlation of monthly income vs monthly loan payment. The cubic line fits in almost all of them and we see both the geom smoothing lines are following each other nicely. This means weather a borrower owns a house or not is not much of importance for the correlation. But we definitely see a more linear relationship for all the categories for the borrowers having verifiable income as compared to non verifiable income. This means that if income is verified, then their is a linear change in monthly loan payment and monthly income as compared non verifiable income borrowers. We also see that for borrowers with verifiable income the relation goes from linear to cubic as the rating of the borrowers goes down.
+
+
+## Reflection
+
