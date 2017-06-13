@@ -10,21 +10,42 @@ The data is available in the CSV format and can be downloaded from
 
 ## Variables Explored
 1.	**Term :** Amount of month customers opted for loan
-2.	**LoanStatus :** 
-3.	**EstimatedEffectiveYield :**
-4.	**ProsperScore :**
-5.	**BorrowerAPR :**
-6.	**BorrowerRate :**
-7.	**ListingCategory..numeric. :**
-8.	**EmploymentStatus :**
-9.	**Occupation :**
-10.	**EmploymentStatusDuration :**
-11.	**IsBorrowerHomeowner :**
-12.	**ProsperRating..Alpha. :**
+2.	**LoanStatus :** Current status of the loan like chargedoff, completed, defauted etc...
+3.	**EstimatedEffectiveYield :** Yield of lenders from borrowers minus the processing fee and late fines
+4.	**ProsperScore :** Risk Factor score from 1 to 10. 10 being least risky
+5.	**BorrowerAPR :** The Borrower's Annual Percentage Rate (APR) for the loan.
+6.	**BorrowerRate :** The Borrower's interest rate for this loan. 
+7.	**ListingCategory..numeric. :** Prosper rating for borrowers in numbers
+8.	**EmploymentStatus : ** Current type of employment 
+9.	**Occupation :** Occupation of borrower at the time of listing
+10. **EmploymentStatusDuration :** How long the employee has been employed
+11.	**IsBorrowerHomeowner :** Does the borrower owns house at the time of listing (True & False)
+12.	**ProsperRating..Alpha. :** Prosper rating for borrowers in alphabets
+13.	**IncomeVerifiable :** If the income of the borrower is verifiable at the time of listing (True & False)
+14.	**StatedMonthlyIncome :** Monthly income of the borrower
+15.	**MonthlyLoanPayment :** Monthly loan payment amount
+16.	**Recommendations :** Recommendations the borrowers has at the time of listing
+17.	**DebtToIncomeRatio :** The debt to income ratio of the borrower at the time the credit profile was pulled. 
+18.	**LoanOriginalAmount :** Original amount of the loan
+19.	**LoanOriginationQuarter :** Quarter of the month when loan was originated
 
 ## Exported Report
-- **Simplified HTML:** [Download](#)
-- **Curated HTML:** [Download](#)
-- **Hosted Curated HTML:** [Download](#) *(Recommended)*
-- **Knitr Simplified PDF:** [Download](#)
-- **MS Docx:** [Download](#)
+- **Simplified HTML:** [Download](https://raw.githubusercontent.com/MayukhSobo/Loan_EDA/master/EDA_Loan.nb.html)
+- **Curated HTML:** [Download](https://github.com/MayukhSobo/Loan_EDA/raw/master/EDA_Loan.html)
+- **Hosted Curated HTML:** [Download](http://rpubs.com/mayukhsobo/prosper_loan_data_analysis) *(Recommended)*
+- **Knitr Simplified PDF:** [Download](https://raw.githubusercontent.com/MayukhSobo/Loan_EDA/master/EDA_Loan.pdf)
+- **MS Docx:** [Download](https://github.com/MayukhSobo/Loan_EDA/raw/master/EDA_Loan.docx)
+- **Markdown:**[Download](https://github.com/MayukhSobo/Loan_EDA/raw/master/EDA_Loan.md) (without plots)
+- **Hosted PDF :** (Coming Soon)
+
+## Dependent Packages
+1. [**ggplt2**](ggplot2.tidyverse.org)
+2. [**ggthemes**](https://github.com/jrnold/ggthemes)
+3. [**dplyr**](https://cran.r-project.org/web/packages/dplyr/index.html)
+4. [**reshape2**](https://cran.r-project.org/web/packages/reshape2/index.html)
+5. [**memisc**](https://cran.r-project.org/web/packages/memisc/index.html)
+6. [**gridextra**](https://cran.r-project.org/web/packages/gridExtra/index.html)
+7. [**RColorBrewer**](https://cran.r-project.org/web/packages/RColorBrewer/index.html)
+8. [**plotrix**](https://cran.r-project.org/web/packages/plotrix/index.html)
+9. [**DT**](https://cran.r-project.org/web/packages/DT/index.html)
+10. [**scales**](https://cran.r-project.org/web/packages/scales/index.html)
