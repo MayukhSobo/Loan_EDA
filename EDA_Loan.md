@@ -78,82 +78,9 @@ It is really strange that people took loans to reimburse loans/debts and lenders
 
 
 
+<!--html_preserve--><div id="htmlwidget-04f0bfd890626e4563ce" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-04f0bfd890626e4563ce">{"x":{"filter":"top","filterHTML":"<tr>\n  <td data-type=\"factor\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"width: 100%; display: none;\">\n      <select multiple=\"multiple\" style=\"width: 100%;\" data-options=\"[&quot;Employed&quot;,&quot;Full-time&quot;,&quot;Not employed&quot;,&quot;Other&quot;,&quot;Part-time&quot;,&quot;Retired&quot;,&quot;Self-employed&quot;]\"><\/select>\n    <\/div>\n  <\/td>\n  <td data-type=\"factor\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"width: 100%; display: none;\">\n      <select multiple=\"multiple\" style=\"width: 100%;\" data-options=\"[&quot;&quot;,&quot;Administrative Assistant&quot;,&quot;Computer Programmer&quot;,&quot;Construction&quot;,&quot;Engineer - Electrical&quot;,&quot;Food Service&quot;,&quot;Investor&quot;,&quot;Nurse (RN)&quot;,&quot;Other&quot;,&quot;Professional&quot;,&quot;Sales - Commission&quot;,&quot;Sales - Retail&quot;,&quot;Student - College Graduate Student&quot;,&quot;Student - College Senior&quot;,&quot;Teacher&quot;]\"><\/select>\n    <\/div>\n  <\/td>\n  <td data-type=\"integer\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none; position: absolute; width: 200px;\">\n      <div data-min=\"2\" data-max=\"1579\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n<\/tr>","data":[["Employed","Employed","Employed","Employed","Employed","Full-time","Full-time","Full-time","Full-time","Full-time","Not employed","Other","Other","Part-time","Part-time","Part-time","Part-time","Part-time","Part-time","Part-time","Retired","Retired","Self-employed","Self-employed","Self-employed","Self-employed","Self-employed"],["Other","Professional","Administrative Assistant","Teacher","Computer Programmer","Other","Professional","Computer Programmer","Teacher","Administrative Assistant","Other","Other","","Other","Sales - Retail","Administrative Assistant","Food Service","Nurse (RN)","Student - College Graduate Student","Student - College Senior","Other","Engineer - Electrical","Other","Professional","Investor","Construction","Sales - Commission"],[1579,789,280,256,247,622,326,139,125,115,153,352,95,23,13,8,7,4,4,4,127,2,152,32,19,16,16]],"container":"<table class=\"stripe\">\n  <thead>\n    <tr>\n      <th>Employment Status<\/th>\n      <th>Occupation<\/th>\n      <th>Total<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":5,"autoWidth":true,"columnDefs":[{"targets":[1,2],"searchable":false},{"className":"dt-right","targets":2}],"crosstalkOptions":{"key":null,"group":null},"order":[],"orderClasses":false,"orderCellsTop":true,"lengthMenu":[5,10,25,50,100]},"selection":{"mode":"multiple","selected":null,"target":"row"}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
 
-\begin{table}[!htb]
-    \begin{minipage}{.5\linewidth}
-      \caption{ Employed }
-      \centering 
-\begin{tabular}{lr}
-\toprule
-Occupation & n\\
-\midrule
-Other & 1579\\
-Professional & 789\\
-Administrative Assistant & 280\\
-Teacher & 256\\
-Computer Programmer & 247\\
-\bottomrule
-\end{tabular} \end{minipage}%
-    \begin{minipage}{.5\linewidth}
-      \centering
-        \caption{ Full-time } 
-\begin{tabular}{lr}
-\toprule
-Occupation & n\\
-\midrule
-Other & 622\\
-Professional & 326\\
-Computer Programmer & 139\\
-Teacher & 125\\
-Administrative Assistant & 115\\
-\bottomrule
-\end{tabular} \end{minipage}
-    \begin{minipage}{.5\linewidth}
-      \centering
-        \caption{ Part-time } 
-\begin{tabular}{lr}
-\toprule
-Occupation & n\\
-\midrule
-Other & 23\\
-Sales - Retail & 13\\
-Administrative Assistant & 8\\
-Food Service & 7\\
-Nurse (RN) & 4\\
-\addlinespace
-Student - College Graduate Student & 4\\
-Student - College Senior & 4\\
-\bottomrule
-\end{tabular} \end{minipage}%
-    \begin{minipage}{.5\linewidth}
-      \centering
-        \caption{ Self-employed } 
-\begin{tabular}{lr}
-\toprule
-Occupation & n\\
-\midrule
-Other & 152\\
-Professional & 32\\
-Investor & 19\\
-Construction & 16\\
-Sales - Commission & 16\\
-\bottomrule
-\end{tabular} \end{minipage}
-    \centering
-    \begin{minipage}{.5\linewidth}
-      \centering
-        \caption{ Others } 
-\begin{tabular}{llr}
-\toprule
-EmploymentStatus & Occupation & n\\
-\midrule
-Other & Other & 352\\
-Other &  & 95\\
-Retired & Other & 127\\
-Retired & Engineer - Electrical & 2\\
-\bottomrule
-\end{tabular} \end{minipage}
-\end{table}
 
 We can see some really strange things happening here. In fact there are so many strange things that I have to list them down
     
