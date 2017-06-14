@@ -16,7 +16,7 @@ The data is available in the CSV format and can be downloaded from
 5.	**BorrowerAPR :** The Borrower's Annual Percentage Rate (APR) for the loan.
 6.	**BorrowerRate :** The Borrower's interest rate for this loan. 
 7.	**ListingCategory..numeric. :** Prosper rating for borrowers in numbers
-8.	**EmploymentStatus : ** Current type of employment 
+8.	**EmploymentStatus :** Current type of employment 
 9.	**Occupation :** Occupation of borrower at the time of listing
 10. **EmploymentStatusDuration :** How long the employee has been employed
 11.	**IsBorrowerHomeowner :** Does the borrower owns house at the time of listing (True & False)
