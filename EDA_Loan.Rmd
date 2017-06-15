@@ -2,13 +2,13 @@
 title: "Prosper Loan Data Analysis"
 author: "Mayukh Sarkar"
 output:
-  pdf_document:
-    highlight: tango
-  html_notebook: default
   prettydoc::html_pretty:
     highlight: vignette
     keep_md: yes
     theme: cayman
+  pdf_document:
+    highlight: tango
+  html_notebook: default
 header-includes: \usepackage{booktabs}
 ---
 
@@ -347,70 +347,70 @@ other.borrowers <- loanData %>%
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 ######### This is for knitr in HTML ############
-# datatable(other.borrowers,
-#           colnames = c('Employment Status' = 'EmploymentStatus',
-#                        'Occupation' = 'Occupation',
-#                        'Total' = 'n'),
-#           class = 'stripe',
-#           rownames = FALSE,
-#           filter = 'top',
-#           options = list(
-#               pageLength = 5,
-#               autoWidth = TRUE,
-#               columnDefs = list(list(targets = c(1, 2), searchable = FALSE))
-#               ))
+datatable(other.borrowers,
+          colnames = c('Employment Status' = 'EmploymentStatus',
+                       'Occupation' = 'Occupation',
+                       'Total' = 'n'),
+          class = 'stripe',
+          rownames = FALSE,
+          filter = 'top',
+          options = list(
+              pageLength = 5,
+              autoWidth = TRUE,
+              columnDefs = list(list(targets = c(1, 2), searchable = FALSE))
+              ))
 ```
 ```{r results='asis', echo=FALSE}
 ######## This is for for knitr in PDF  #########
-employed <- other.borrowers %>%
-    filter(EmploymentStatus == 'Employed') %>%
-    dplyr::select(-EmploymentStatus)
-full.time <- other.borrowers %>%
-    filter(EmploymentStatus == 'Full-time') %>%
-    dplyr::select(-EmploymentStatus)
-part.time <- other.borrowers %>%
-    filter(EmploymentStatus == 'Part-time') %>%
-    dplyr::select(-EmploymentStatus)
-self.employed <- other.borrowers %>%
-    filter(EmploymentStatus == 'Self-employed') %>%
-    dplyr::select(-EmploymentStatus)
-others <- other.borrowers %>%
-    filter(EmploymentStatus == 'Retired' | EmploymentStatus == 'Other')
-
-t1 <- kable(employed, format = "latex", booktabs = TRUE)
-t2 <- kable(full.time, format = "latex", booktabs = TRUE)
-t3 <- kable(part.time, format = "latex", booktabs = TRUE)
-t4 <- kable(self.employed, format = "latex", booktabs = TRUE)
-t5 <- kable(others, format = "latex", booktabs = TRUE)
-cat(c("\\begin{table}[!htb]
-    \\begin{minipage}{.5\\linewidth}
-      \\caption{ Employed }
-      \\centering",
-        t1,
-    "\\end{minipage}%
-    \\begin{minipage}{.5\\linewidth}
-      \\centering
-        \\caption{ Full-time }",
-        t2,
-    "\\end{minipage}
-    \\begin{minipage}{.5\\linewidth}
-      \\centering
-        \\caption{ Part-time }",
-        t3,
-    "\\end{minipage}%
-    \\begin{minipage}{.5\\linewidth}
-      \\centering
-        \\caption{ Self-employed }",
-        t4,
-    "\\end{minipage}
-    \\centering
-    \\begin{minipage}{.5\\linewidth}
-      \\centering
-        \\caption{ Others }",
-        t5,
-    "\\end{minipage}
-\\end{table}"
-))
+# employed <- other.borrowers %>%
+#     filter(EmploymentStatus == 'Employed') %>%
+#     dplyr::select(-EmploymentStatus)
+# full.time <- other.borrowers %>%
+#     filter(EmploymentStatus == 'Full-time') %>%
+#     dplyr::select(-EmploymentStatus)
+# part.time <- other.borrowers %>%
+#     filter(EmploymentStatus == 'Part-time') %>%
+#     dplyr::select(-EmploymentStatus)
+# self.employed <- other.borrowers %>%
+#     filter(EmploymentStatus == 'Self-employed') %>%
+#     dplyr::select(-EmploymentStatus)
+# others <- other.borrowers %>%
+#     filter(EmploymentStatus == 'Retired' | EmploymentStatus == 'Other')
+# 
+# t1 <- kable(employed, format = "latex", booktabs = TRUE)
+# t2 <- kable(full.time, format = "latex", booktabs = TRUE)
+# t3 <- kable(part.time, format = "latex", booktabs = TRUE)
+# t4 <- kable(self.employed, format = "latex", booktabs = TRUE)
+# t5 <- kable(others, format = "latex", booktabs = TRUE)
+# cat(c("\\begin{table}[!htb]
+#     \\begin{minipage}{.5\\linewidth}
+#       \\caption{ Employed }
+#       \\centering",
+#         t1,
+#     "\\end{minipage}%
+#     \\begin{minipage}{.5\\linewidth}
+#       \\centering
+#         \\caption{ Full-time }",
+#         t2,
+#     "\\end{minipage}
+#     \\begin{minipage}{.5\\linewidth}
+#       \\centering
+#         \\caption{ Part-time }",
+#         t3,
+#     "\\end{minipage}%
+#     \\begin{minipage}{.5\\linewidth}
+#       \\centering
+#         \\caption{ Self-employed }",
+#         t4,
+#     "\\end{minipage}
+#     \\centering
+#     \\begin{minipage}{.5\\linewidth}
+#       \\centering
+#         \\caption{ Others }",
+#         t5,
+#     "\\end{minipage}
+# \\end{table}"
+# ))
 ```
 
 We can see some really strange things happening here. In fact there are so many strange things that I have to list them down
