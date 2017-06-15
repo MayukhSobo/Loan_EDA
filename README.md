@@ -33,10 +33,10 @@ The data is available in the CSV format and can be downloaded from
 - **Simplified HTML:** [Download](https://raw.githubusercontent.com/MayukhSobo/Loan_EDA/master/EDA_Loan.nb.html)
 - **Curated HTML:** [Download](https://github.com/MayukhSobo/Loan_EDA/raw/master/EDA_Loan.html)
 - **Hosted Curated HTML:** [Read](http://rpubs.com/mayukhsobo/prosper_loan_data_analysis)
-- **Knitr Simplified PDF:** [Download](https://raw.githubusercontent.com/MayukhSobo/Loan_EDA/master/EDA_Loan.pdf) *(Recommended)*
+- **Knitr Simplified PDF:** [Download](https://raw.githubusercontent.com/MayukhSobo/Loan_EDA/master/EDA_Loan.pdf)
 - **MS Docx:** [Download](https://github.com/MayukhSobo/Loan_EDA/raw/master/EDA_Loan.docx)
 - **Markdown:**[Download](https://github.com/MayukhSobo/Loan_EDA/raw/master/EDA_Loan.md) (without plots)
-- **Hosted PDF :** [Read](http://mydo.cx/MDQwNWIz) 
+- **Hosted PDF :** [Read](http://mydo.cx/MDQwNWIz) *(Recommended)*
 
 ## Dependent Packages
 1. [**ggplt2**](ggplot2.tidyverse.org)
