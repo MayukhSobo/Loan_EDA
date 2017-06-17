@@ -2,13 +2,14 @@
 title: "Prosper Loan Data Analysis"
 author: "Mayukh Sarkar"
 output:
+  pdf_document:
+    highlight: tango
+  html_notebook: default
   prettydoc::html_pretty:
     highlight: vignette
     keep_md: yes
     theme: cayman
-  pdf_document:
-    highlight: tango
-  html_notebook: default
+  word_document: default
 header-includes: \usepackage{booktabs}
 ---
 
@@ -33,6 +34,52 @@ suppressMessages(library(corrplot))
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 loanData <- read.csv('prosperLoanData.csv')
+```
+## Introduction
+This dataset is financial dataset and this is related to the loan, borrowers, lenders, interest rates and stuffs like that. Prosper or [Prosper Marketplace Inc.](https://www.prosper.com/) is a San Francisco, California based company specializing in loans at low interest rates to the borrowers. In this dataset, we are using the data from the Posper to analyse it and trying to find the pattern in the Prosper data. This may be tedious because of the sheer size of the dataset and the complicated nature of all the financial datasets. We are using R, an advanced high level programming language of the analysis with some of its most popular graphic package ```ggplot```. The codes are not visible in the HTML/PDF export for the simlicity but the codes can be reviewed from the RMD file. 
+
+The dataset is comprised of 81 variables and contains 113937 entries. The variable that are explored in the dataset are the following 
+Term : Amount of month customers opted for loan
+
+**LoanStatus** : Current status of the loan like chargedoff, completed, defauted etc...
+
+**EstimatedEffectiveYield** : Yield of lenders from borrowers minus the processing fee and late fines
+
+**ProsperScore** : Risk Factor score from 1 to 10. 10 being least risky
+
+**BorrowerAPR** : The Borrower's Annual Percentage Rate (APR) for the loan.
+
+**BorrowerRate** : The Borrower's interest rate for this loan.
+
+**ListingCategory..numeric.** : Prosper rating for borrowers in numbers
+
+**EmploymentStatus** : Current type of employment
+
+**Occupation** : Occupation of borrower at the time of listing
+
+**EmploymentStatusDuration** : How long the employee has been employed
+
+**IsBorrowerHomeowner** : Does the borrower owns house at the time of listing (True & False)
+
+**ProsperRating..Alpha.** : Prosper rating for borrowers in alphabets
+
+**IncomeVerifiable** : If the income of the borrower is verifiable at the time of listing (True & False)
+
+**StatedMonthlyIncome** : Monthly income of the borrower
+
+**MonthlyLoanPayment** : Monthly loan payment amount
+
+**Recommendations** : Recommendations the borrowers has at the time of listing
+
+**DebtToIncomeRatio** : The debt to income ratio of the borrower at the time the credit profile was pulled.
+
+**LoanOriginalAmount** : Original amount of the loan
+
+**LoanOriginationQuarter** : Quarter of the month when loan was originated
+
+A basic exploration of the datset would give the following information
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+str(loanData)
 ```
 
 ## The first Qustion
@@ -59,35 +106,45 @@ totalLoanTermes <- loanData %>%
     group_by(Term) %>%
     summarise(n = n()) %>%
     use_series(n)
-totalLoanTermes <- rep(totalLoanTermes, each = 2)
+# totalLoanTermes <- rep(totalLoanTermes, each = 2)
 loanData.two_status <- loanData %>%
     group_by(Term, LoanStatus) %>%
-    summarise(n = n()) %>%
-    filter(LoanStatus == 'Completed' | LoanStatus == 'Defaulted')
-loanData.two_status$percent = (loanData.two_status$n / totalLoanTermes) * 100
+    summarise(n = n())
+levels(loanData.two_status$LoanStatus) <-
+    c(levels(loanData.two_status$LoanStatus), "Other")
+loanData.two_status$LoanStatus[!(loanData.two_status$LoanStatus %in%
+                                     c("Completed", "Defaulted"))] <- "Other"
+
+loanData.two_status <- loanData.two_status %>%
+    group_by(Term, LoanStatus) %>%
+    summarise(p = n(), total = sum(n)) %>%
+    mutate(freq = round(total / sum(total) * 100, 2))
 ```
 
 ## Plotting the trend of different customer types
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-ggplot(aes(x = Term / 12, y = percent, fill = LoanStatus), 
+ggplot(aes(x = Term / 12, y = freq, fill = LoanStatus), 
        data = loanData.two_status) +
-    geom_bar(stat = 'identity', position="dodge", color = 'black') + 
+    geom_bar(stat = 'identity', position="stack", color = 'black') + 
     scale_x_continuous(breaks = c(1, 3, 5)) +
     xlab('Loan term in years') + 
     theme_pander() +
-    coord_flip() +
     ggtitle("LoanStatus: Completed vs Defaulted", 
             subtitle = "for each loan Term") +
     theme(plot.title = element_text(face = 'bold.italic', 
                                     colour = '#F35E3A', size=18),
           plot.subtitle = element_text(face = 'bold', 
-                                       colour = '#17b4ba', size=11))
+                                       colour = '#17b4ba', size=11)) +
+    ylab("% of Borrowers")
 ```
 
 That's unusual because for **LoanStatus** of _Completed_, we see a trend but not in **LoanStatus** of _Defaulted_ though. Now just because some customer's loan status is not Completed, doesn't mean his/her loan status is Defaulted.
-The reason we are exploring this is because we want to find if BANKS SHOULD FOCUS ON CUSTOMERS OPTING LOANS FOR SMALLER TERMS OR NOT? For this getting data of only two loan status won't be enough. So let's divide the customers into two groups
+
+We can see that there is a trend in the of **LoanStatus** of _Completed_ and _Other_ but we see any trend in _Defaulted_ though. Now just because some customer's loan status is not Completed, doesn't mean his/her loan status is Defaulted. So let's explore the Defaulted section more.
+
+The reason we are exploring this is because we want to find if BANKS SHOULD FOCUS ON CUSTOMERS OPTING LOANS FOR SMALLER TERMS OR NOT? AND HOW SOME OF THE MOST COMMON BORROWER LOANSTATUS VARIES FOR DIFFERENT LOAN TERMS? For this getting data of only two loan status won't be enough. So let's divide the customers into two groups
 
     1. Good Customer
     2. Bad Customer
@@ -236,11 +293,11 @@ grid.arrange(prosperScoreCountPlot,
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(aes(x = EstimatedEffectiveYield), data = loanData) +
-    geom_histogram(aes(y = ..density..), bins = 100, na.rm = T, 
+    geom_histogram(aes(y = ..density..), binwidth = 0.01, na.rm = T, 
                    color = 'darkblue', fill = 'lightblue') +
     theme_hc() +
-    scale_x_continuous(limits = c(-0.1827, 0.3199), 
-                       breaks = seq(-0.1827, 0.3199, 0.05)) +
+    scale_x_continuous(limits = c(-0.1, 0.5), 
+                       breaks = seq(-0.1, 0.5, 0.05)) +
     geom_density(alpha=.2, fill="#FF6666", na.rm = T) + 
     geom_vline(aes(xintercept=mean(EstimatedEffectiveYield, na.rm=T)), 
                color="blue", linetype="dashed", size=1) +
@@ -347,70 +404,70 @@ other.borrowers <- loanData %>%
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 ######### This is for knitr in HTML ############
-datatable(other.borrowers,
-          colnames = c('Employment Status' = 'EmploymentStatus',
-                       'Occupation' = 'Occupation',
-                       'Total' = 'n'),
-          class = 'stripe',
-          rownames = FALSE,
-          filter = 'top',
-          options = list(
-              pageLength = 5,
-              autoWidth = TRUE,
-              columnDefs = list(list(targets = c(1, 2), searchable = FALSE))
-              ))
+# datatable(other.borrowers,
+#           colnames = c('Employment Status' = 'EmploymentStatus',
+#                        'Occupation' = 'Occupation',
+#                        'Total' = 'n'),
+#           class = 'stripe',
+#           rownames = FALSE,
+#           filter = 'top',
+#           options = list(
+#               pageLength = 5,
+#               autoWidth = TRUE,
+#               columnDefs = list(list(targets = c(1, 2), searchable = FALSE))
+#               ))
 ```
 ```{r results='asis', echo=FALSE}
 ######## This is for for knitr in PDF  #########
-# employed <- other.borrowers %>%
-#     filter(EmploymentStatus == 'Employed') %>%
-#     dplyr::select(-EmploymentStatus)
-# full.time <- other.borrowers %>%
-#     filter(EmploymentStatus == 'Full-time') %>%
-#     dplyr::select(-EmploymentStatus)
-# part.time <- other.borrowers %>%
-#     filter(EmploymentStatus == 'Part-time') %>%
-#     dplyr::select(-EmploymentStatus)
-# self.employed <- other.borrowers %>%
-#     filter(EmploymentStatus == 'Self-employed') %>%
-#     dplyr::select(-EmploymentStatus)
-# others <- other.borrowers %>%
-#     filter(EmploymentStatus == 'Retired' | EmploymentStatus == 'Other')
-# 
-# t1 <- kable(employed, format = "latex", booktabs = TRUE)
-# t2 <- kable(full.time, format = "latex", booktabs = TRUE)
-# t3 <- kable(part.time, format = "latex", booktabs = TRUE)
-# t4 <- kable(self.employed, format = "latex", booktabs = TRUE)
-# t5 <- kable(others, format = "latex", booktabs = TRUE)
-# cat(c("\\begin{table}[!htb]
-#     \\begin{minipage}{.5\\linewidth}
-#       \\caption{ Employed }
-#       \\centering",
-#         t1,
-#     "\\end{minipage}%
-#     \\begin{minipage}{.5\\linewidth}
-#       \\centering
-#         \\caption{ Full-time }",
-#         t2,
-#     "\\end{minipage}
-#     \\begin{minipage}{.5\\linewidth}
-#       \\centering
-#         \\caption{ Part-time }",
-#         t3,
-#     "\\end{minipage}%
-#     \\begin{minipage}{.5\\linewidth}
-#       \\centering
-#         \\caption{ Self-employed }",
-#         t4,
-#     "\\end{minipage}
-#     \\centering
-#     \\begin{minipage}{.5\\linewidth}
-#       \\centering
-#         \\caption{ Others }",
-#         t5,
-#     "\\end{minipage}
-# \\end{table}"
-# ))
+employed <- other.borrowers %>%
+    filter(EmploymentStatus == 'Employed') %>%
+    dplyr::select(-EmploymentStatus)
+full.time <- other.borrowers %>%
+    filter(EmploymentStatus == 'Full-time') %>%
+    dplyr::select(-EmploymentStatus)
+part.time <- other.borrowers %>%
+    filter(EmploymentStatus == 'Part-time') %>%
+    dplyr::select(-EmploymentStatus)
+self.employed <- other.borrowers %>%
+    filter(EmploymentStatus == 'Self-employed') %>%
+    dplyr::select(-EmploymentStatus)
+others <- other.borrowers %>%
+    filter(EmploymentStatus == 'Retired' | EmploymentStatus == 'Other')
+
+t1 <- kable(employed, format = "latex", booktabs = TRUE)
+t2 <- kable(full.time, format = "latex", booktabs = TRUE)
+t3 <- kable(part.time, format = "latex", booktabs = TRUE)
+t4 <- kable(self.employed, format = "latex", booktabs = TRUE)
+t5 <- kable(others, format = "latex", booktabs = TRUE)
+cat(c("\\begin{table}[!htb]
+    \\begin{minipage}{.5\\linewidth}
+      \\caption{ Employed }
+      \\centering",
+        t1,
+    "\\end{minipage}%
+    \\begin{minipage}{.5\\linewidth}
+      \\centering
+        \\caption{ Full-time }",
+        t2,
+    "\\end{minipage}
+    \\begin{minipage}{.5\\linewidth}
+      \\centering
+        \\caption{ Part-time }",
+        t3,
+    "\\end{minipage}%
+    \\begin{minipage}{.5\\linewidth}
+      \\centering
+        \\caption{ Self-employed }",
+        t4,
+    "\\end{minipage}
+    \\centering
+    \\begin{minipage}{.5\\linewidth}
+      \\centering
+        \\caption{ Others }",
+        t5,
+    "\\end{minipage}
+\\end{table}"
+))
 ```
 
 We can see some really strange things happening here. In fact there are so many strange things that I have to list them down
@@ -435,7 +492,7 @@ borrower.experience <- loanData %>%
 
 hist1 <- ggplot(aes(x = EmploymentStatusDuration / 12), 
                 data = borrower.experience) +
-         geom_histogram(binwidth = 2, 
+         geom_histogram(binwidth = 1, 
                         color = 'red', 
                         fill = 'deeppink', 
                         alpha = 1/2) +
@@ -455,26 +512,33 @@ hist1 <- ggplot(aes(x = EmploymentStatusDuration / 12),
                                        colour = 'black', 
                                        size=14))
 
-hist2 <- ggplot(aes(x = EmploymentStatusDuration / 12), 
-                data = borrower.experience) +
-         geom_histogram(binwidth = 1, 
-                        color = 'black', 
-                        aes(fill = ..count..)) +
-         theme_pander() + 
-         coord_cartesian(xlim = c(2, 12)) +
-         scale_x_continuous(breaks = seq(2, 12, 1)) +
-         xlab('\nExperience in years (95% Quartile)') +
-         scale_fill_gradient("Count", low = "darkslategray1", 
-                             high = "darkslategrey") +
-         guides(fill=FALSE) +
-         ggtitle("Loans for Experienced people",
-                 subtitle = "95% Qaurtile range") +
-        theme(plot.title = element_text(face = 'bold.italic', 
+duration <- loanData %>%
+    filter(!is.na(EmploymentStatusDuration)) %>%
+    mutate(EmploymentStatusDuration = round(EmploymentStatusDuration / 12, 0)) %>%
+    group_by(EmploymentStatusDuration) %>%
+    summarise(n = n()) %>%
+    mutate(freq = n / sum(n) * 100) %>%
+    top_n(n = 5, wt = freq)
+
+
+hist2<- 
+    ggplot(aes(x = reorder(EmploymentStatusDuration, -freq), y = freq, fill = freq), 
+           data = duration) +
+        geom_bar(stat = 'identity', position="dodge",
+             color = 'white') +
+         theme_pander() +
+    scale_fill_continuous_tableau(palette = "Blue") +
+    guides(fill = F) +
+    ggtitle("Loans for Experienced people",
+                 subtitle = "top 5 experience levels") +
+    theme(plot.title = element_text(face = 'bold.italic', 
                                         colour = 'darkslategrey', 
                                         size=20),
           plot.subtitle = element_text(face = 'bold', 
                                        colour = 'black', 
-                                       size=14))
+                                       size=14)) +
+    xlab("Top 5 experience levels in years") +
+    ylab("% of borrowers")
 grid.arrange(hist1, hist2, ncol = 2, nrow = 1) 
 
 ```
@@ -737,11 +801,27 @@ recommend <- rec %>%
     group_by(recrange) %>%
     summarise(total = round(sum(freq), 2))
 k <- recommend[order(recommend$total), ]
-plotrix::pie3D(sort(recommend$total), 
-               labels = sprintf("%s\n(%s%%)", k$recrange, sort(recommend$total)), 
-      col=brewer.pal(5, "RdPu"), 
-      main = "Monthly Loan for differnt recommendations",
-      theta = pi / 3, labelcex = 0.8)
+
+ggplot(aes(x = reorder(recrange, -total), 
+           y = total, fill = -total), data = recommend) +
+    geom_bar(stat = 'identity', position="dodge") +
+    theme_minimal() +
+    guides(fill = F) +
+    scale_fill_gradient(low = 'darkblue', high = 'blue') +
+    geom_text(aes(label = sprintf("%2.1f%%", round(total, 2))), 
+              color="dodgerblue4", size = 5.5, nudge_y = 1.5, 
+              fontface = 'bold', nudge_x = 0.06) +
+    ylab("% of borrowers") +
+    xlab("Number of Recommendations") +
+    theme(
+          plot.title = element_text(face = 'bold.italic', 
+                                    colour = 'darkblue', 
+                                    size=18),
+          plot.subtitle = element_text(face = 'bold', 
+                                       colour = 'blue', 
+                                       size=12)) +
+    ggtitle("Borrowers with different recommendations", 
+            subtitle = "in terms of monthly loan payment")
 ```
 
 As we can see that people with _Above 20_ recommendations has the highest number of _MonthlyLoanPayment_ percentage as compared to any other group. But this still can't assure us that people with higher recommendations pay more loan each month. This question was relevant because we want to find out IF PEOPLE WITH MORE RECOMMENDATION ARE POWERFUL AND RICH ENOUGH TO PAY MORE LOAN MONTHLY? The answer is we can't be really sure.
